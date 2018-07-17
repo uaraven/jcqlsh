@@ -24,6 +24,7 @@ public class CqlShell {
         this.history = createHistory();
 
         this.reader = LineReaderBuilder.builder()
+                .option(LineReader.Option.CASE_INSENSITIVE, true)
                 .terminal(this.terminal)
                 .completer(this.completer)
                 .highlighter(new CqlHighlighter())

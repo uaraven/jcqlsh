@@ -3,15 +3,30 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'antlr'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
 }
-
 dependencies {
     antlr 'org.antlr:antlr4:4.7.1'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'net.ninjacat.cql.CqlShell'
+    }
 }
 
 final def jlineVersion = '3.7.0'

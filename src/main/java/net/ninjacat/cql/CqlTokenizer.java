@@ -3,49 +3,65 @@ package net.ninjacat.cql;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
-import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Pattern;
 
-public class CqlTokenizer {
+class CqlTokenizer {
+    private static final Pattern WS_PATTERN = Pattern.compile("\\s+");
 
     private static final String DELIM = " \t\"'\n\r;,.()[]<>=?";
     private static final Set<String> SYMBOLS = Sets.newHashSet(",", ".", "(", ")", "[", "]", "<", ">", "=", "?");
     private static final Set<String> KEYWORDS = Sets.newHashSet("SELECT", "UPDATE", "DELETE", "FROM", "WHERE", "SET", "DESC", "SHOW");
 
 
-    public static List<Token> parse(final String line, final int cursorPos) {
+    static List<Token> parse(final String line, final int cursorPos) {
         final StringTokenizer tokenizer = new StringTokenizer(line, DELIM, true);
-
         final ImmutableList.Builder<Token> result = ImmutableList.builder();
 
         String currentDelim = DELIM;
         String currentQuote = "";
         String prevToken = "";
-        while (true) {
-            final String token = tokenizer.nextToken(currentDelim);
-            if (currentQuote.isEmpty() && ("'".equals(token) || "\"".equals(token))) {
-                currentQuote = token;
-                currentDelim = token + "\n";
-            } else {
-                currentDelim = DELIM;
-
-                if (token.equals(currentQuote)) {
-                    result.add(new Token(currentQuote + prevToken + currentQuote, TokenType.STRING, -1));
-                    currentQuote = "";
+        int position = 0;
+        int tokenIndex = 0;
+        try {
+            while (true) {
+                final String token = tokenizer.nextToken(currentDelim);
+                if (currentQuote.isEmpty() && ("'".equals(token) || "\"".equals(token))) {
+                    currentQuote = token;
+                    currentDelim = token + "\n";
                 } else {
-                    result.add(new Token(token, guessTokenType(token), -1));
+                    currentDelim = DELIM;
+
+                    int cursorInWord;
+                    if (cursorPos >= position && cursorPos <= (position + token.length())) {
+                        cursorInWord = cursorPos - position;
+                    } else {
+                        cursorInWord = -1;
+                    }
+
+                    if (token.equals(currentQuote)) {
+                        result.add(new Token(tokenIndex, currentQuote + prevToken + currentQuote, TokenType.STRING, cursorInWord));
+                        currentQuote = "";
+                    } else {
+                        result.add(new Token(tokenIndex, token, guessTokenType(token), cursorInWord));
+                    }
+                    tokenIndex += 1;
+                    position += token.length();
                 }
+                prevToken = token;
             }
-            prevToken = token;
+        } catch (final NoSuchElementException ex) {
+            return result.build();
         }
     }
 
     private static TokenType guessTokenType(final String token) {
+        if (WS_PATTERN.matcher(token).matches()) {
+            return TokenType.WHITESPACE;
+        }
         if (SYMBOLS.contains(token)) {
             return TokenType.SYMBOL;
-        } else if (KEYWORDS.contains(token)) {
+        } else if (KEYWORDS.contains(token.toUpperCase())) {
             return TokenType.KEYWORD;
         } else if (";".equals(token)) {
             return TokenType.SEMICOLON;
@@ -63,31 +79,8 @@ public class CqlTokenizer {
         return TokenType.GENERIC;
     }
 
-    public static class Token {
-        private final String token;
-        private final TokenType tokenType;
-        private final int cursorPos;
-
-        Token(final String token, final TokenType type, final int cursorPos) {
-            this.token = token;
-            this.tokenType = type;
-            this.cursorPos = cursorPos;
-        }
-
-        public int getCursorPos() {
-            return this.cursorPos;
-        }
-
-        public String getToken() {
-            return this.token;
-        }
-
-        public TokenType getTokenType() {
-            return this.tokenType;
-        }
-    }
-
     public enum TokenType {
+        WHITESPACE,
         KEYWORD,
         STRING,
         NUMBER,
@@ -95,5 +88,35 @@ public class CqlTokenizer {
         SYMBOL,
         SEMICOLON,
         GENERIC
+    }
+
+    static class Token {
+        private final int index;
+        private final String token;
+        private final TokenType tokenType;
+        private final int cursorPos;
+
+        Token(final int index, final String token, final TokenType type, final int cursorPos) {
+            this.index = index;
+            this.token = token;
+            this.tokenType = type;
+            this.cursorPos = cursorPos;
+        }
+
+        int getIndex() {
+            return index;
+        }
+
+        int getCursorPos() {
+            return this.cursorPos;
+        }
+
+        String getToken() {
+            return this.token;
+        }
+
+        TokenType getTokenType() {
+            return this.tokenType;
+        }
     }
 }
