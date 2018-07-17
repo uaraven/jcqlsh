@@ -26,6 +26,7 @@ public class CqlShell {
         this.reader = LineReaderBuilder.builder()
                 .terminal(this.terminal)
                 .completer(this.completer)
+                .highlighter(new CqlHighlighter())
                 .history(this.history)
                 .build();
     }
@@ -52,5 +53,10 @@ public class CqlShell {
 
             }
         }
+    }
+
+    public static void main(final String[] args) throws IOException {
+        final CqlShell cqlShell = new CqlShell();
+        cqlShell.repl();
     }
 }

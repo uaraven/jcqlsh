@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/jcqlsh.iml" filepath="$PROJECT_DIR$/jcqlsh.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jcqlsh_main.iml" filepath="$PROJECT_DIR$/.idea/modules/jcqlsh_main.iml" group="jcqlsh" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jcqlsh_test.iml" filepath="$PROJECT_DIR$/.idea/modules/jcqlsh_test.iml" group="jcqlsh" />
+    </modules>
+  </component>
+</project>

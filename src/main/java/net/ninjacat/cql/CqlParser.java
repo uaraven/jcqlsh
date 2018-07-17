@@ -5,7 +5,6 @@ import org.jline.reader.Parser;
 import org.jline.reader.SyntaxError;
 
 import java.util.List;
-import java.util.StringTokenizer;
 
 public class CqlParser implements Parser {
 
@@ -44,7 +43,6 @@ public class CqlParser implements Parser {
 
     @Override
     public ParsedLine parse(final String line, final int cursor, final ParseContext context) throws SyntaxError {
-
         return null;
     }
 
