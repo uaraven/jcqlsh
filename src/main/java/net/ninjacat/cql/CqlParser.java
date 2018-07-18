@@ -1,5 +1,8 @@
 package net.ninjacat.cql;
 
+import net.ninjacat.cql.parser.CqlTokenizer;
+import net.ninjacat.cql.parser.Token;
+import net.ninjacat.cql.parser.TokenType;
 import org.jline.reader.ParsedLine;
 import org.jline.reader.Parser;
 import org.jline.reader.SyntaxError;
@@ -16,31 +19,31 @@ public class CqlParser implements Parser {
 
     @Override
     public ParsedLine parse(final String line, final int cursor, final ParseContext context) throws SyntaxError {
-        final List<CqlTokenizer.Token> tokens = CqlTokenizer.parse(line, cursor);
+        final List<Token> tokens = CqlTokenizer.parse(line, cursor);
 
-        final Optional<CqlTokenizer.Token> word = tokens.stream().filter(token -> token.getCursorPos() >= 0).findFirst();
+        final Optional<Token> word = tokens.stream().filter(token -> token.getCursorPos() >= 0).findFirst();
 
         return new ParsedLine() {
             @Override
             public String word() {
-                return word.map(CqlTokenizer.Token::getToken).orElse(null);
+                return word.map(Token::getToken).orElse(null);
             }
 
             @Override
             public int wordCursor() {
-                return word.map(CqlTokenizer.Token::getCursorPos).orElse(-1);
+                return word.map(Token::getCursorPos).orElse(-1);
             }
 
             @Override
             public int wordIndex() {
-                return word.map(CqlTokenizer.Token::getIndex).orElse(-1);
+                return word.map(Token::getIndex).orElse(-1);
             }
 
             @Override
             public List<String> words() {
                 return tokens.stream()
-                        .filter(it -> it.getTokenType() != CqlTokenizer.TokenType.WHITESPACE)
-                        .map(CqlTokenizer.Token::getToken)
+                        .filter(it -> it.getTokenType() != TokenType.WHITESPACE)
+                        .map(Token::getToken)
                         .collect(Collectors.toList());
             }
 

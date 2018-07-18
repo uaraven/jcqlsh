@@ -1,32 +1,31 @@
 package net.ninjacat.cql;
 
-import org.jline.reader.Completer;
-import org.jline.reader.History;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
+import com.google.common.collect.Streams;
+import net.ninjacat.cql.utils.Keywords;
+import org.jline.reader.*;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CqlShell {
 
     private final Terminal terminal;
-    private final Completer completer;
     private final LineReader reader;
     private final History history;
 
     public CqlShell() throws IOException {
         this.terminal = TerminalBuilder.terminal();
-        this.completer = createCqlCompleter();
         this.history = createHistory();
 
         this.reader = LineReaderBuilder.builder()
                 .option(LineReader.Option.CASE_INSENSITIVE, true)
                 .terminal(this.terminal)
-                .completer(this.completer)
+                .completer(createCqlCompleter())
                 .highlighter(new CqlHighlighter())
                 .history(this.history)
                 .build();
@@ -39,19 +38,24 @@ public class CqlShell {
     }
 
     private static Completer createCqlCompleter() {
-        return new StringsCompleter("SELECT", "UPDATE", "DELETE", "FROM", "WHERE", "AND", "OR");
+        final List<String> recognizedTokens = Streams.concat(Streams.concat(
+                Keywords.readResource("/keywords").stream(),
+                Keywords.readResource("/shell").stream()),
+                Keywords.readResource("/types").stream()).collect(Collectors.toList());
+        return new StringsCompleter(recognizedTokens);
     }
 
-    public void repl() {
+    private void repl() {
         try {
             while (true) {
-                String line = this.reader.readLine("#>");
+                String line = this.reader.readLine("#> ");
             }
+        } catch (UserInterruptException | EndOfFileException ignored) {
+            System.out.println("\nDone");
         } finally {
             try {
                 this.history.save();
             } catch (final IOException ignored) {
-
             }
         }
     }

@@ -2,7 +2,6 @@ group 'net.ninjacat'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
-apply plugin: 'antlr'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 buildscript {
@@ -18,9 +17,6 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
-}
-dependencies {
-    antlr 'org.antlr:antlr4:4.7.1'
 }
 
 jar {
@@ -38,4 +34,5 @@ dependencies {
     compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.17.1'
     compile group: 'com.google.guava', name: 'guava', version: '22.0'
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
 }
