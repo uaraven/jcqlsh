@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CqlShell {
+public final class CqlShell {
 
     private static final String MAIN_PROMPT = "> ";
     private static final String CONTINUATION_PROMPT = "... ";
@@ -35,7 +35,7 @@ public class CqlShell {
     private final CqlExecutor cqlExecutor;
     private String prompt;
 
-    private CqlShell(Parameters parameters) throws Exception {
+    private CqlShell(final Parameters parameters) throws Exception {
         final Terminal terminal = TerminalBuilder.terminal();
         this.history = createHistory();
 
@@ -48,10 +48,12 @@ public class CqlShell {
                 .build();
 
         final CassandraProvider cassandraProvider = new CassandraProvider();
-        Session session = cassandraProvider.createSession(parameters, terminal);
+        final Session session = cassandraProvider.createSession(parameters, terminal);
 
-        this.cqlExecutor = new CqlExecutor(session, terminal);
-        this.shellExecutor = new ShellExecutor(session, terminal);
+        final ShellContext context = new ShellContext(terminal, session);
+
+        this.cqlExecutor = new CqlExecutor(context);
+        this.shellExecutor = new ShellExecutor(context);
     }
 
     private static History createHistory() throws IOException {
@@ -69,7 +71,7 @@ public class CqlShell {
 
     public static void main(final String[] args) {
 
-        Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        final Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         root.setLevel(Level.OFF);
 
         final Parameters connectionParameters = new Parameters();
@@ -81,7 +83,7 @@ public class CqlShell {
         try {
             final CqlShell cqlShell = new CqlShell(connectionParameters);
             cqlShell.repl();
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             System.err.println("Terminated with error: " + ex.getMessage());
         }
     }
@@ -96,33 +98,37 @@ public class CqlShell {
             final StringBuilder cmdBuilder = new StringBuilder();
 
             while (true) {
-                final String line = this.reader.readLine(prompt);
+                final String line;
+                try {
+                    line = this.reader.readLine(this.prompt);
+                } catch (final UserInterruptException ignored) {
+                    continue;
+                }
 
                 final List<Token> parsed = CqlTokenizer.parse(cmdBuilder.toString() + line)
                         .stream()
                         .filter(t -> t.getTokenType() != TokenType.WHITESPACE)
                         .collect(Collectors.toList());
 
-                if (parsed.get(parsed.size() - 1).getTokenType() != TokenType.SEMICOLON) {
-                    setPrompt(CONTINUATION_PROMPT);
-                    cmdBuilder.append(line);
-                } else {
-                    setPrompt(MAIN_PROMPT);
-                    cmdBuilder.setLength(0);
+                if (!parsed.isEmpty()) {
+                    final String command = parsed.get(0).getToken();
+                    if (isShellCommand(command)) {
+                        this.shellExecutor.execute(parsed);
+                    } else {
 
-                    if (parsed.size() > 0) {
-                        final String command = parsed.get(0).getToken();
-                        if (isShellCommand(command)) {
-                            this.shellExecutor.execute(parsed);
+                        if (parsed.get(parsed.size() - 1).getTokenType() != TokenType.SEMICOLON) {
+                            setPrompt(CONTINUATION_PROMPT);
+                            cmdBuilder.append(line);
                         } else {
+                            setPrompt(MAIN_PROMPT);
+                            cmdBuilder.setLength(0);
                             this.cqlExecutor.execute(parsed);
                         }
                     }
-
                 }
 
             }
-        } catch (UserInterruptException | EndOfFileException ignored) {
+        } catch (final EndOfFileException ignored) {
             System.out.println("\nDone");
         } finally {
             try {
@@ -132,7 +138,7 @@ public class CqlShell {
         }
     }
 
-    private boolean isShellCommand(String command) {
+    private boolean isShellCommand(final String command) {
         return this.shellExecutor.isShellCommand(command);
     }
 }
