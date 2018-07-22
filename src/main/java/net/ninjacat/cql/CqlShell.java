@@ -130,6 +130,7 @@ public final class CqlShell {
             }
         } catch (final EndOfFileException ignored) {
             System.out.println("\nDone");
+            System.exit(0);
         } finally {
             try {
                 this.history.save();

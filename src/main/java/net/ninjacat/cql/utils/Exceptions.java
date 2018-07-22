@@ -22,9 +22,9 @@ public final class Exceptions {
             } else {
                 a.a("    ");
             }
-            a.a(String.format("%s.%s in %s:%d",
+            a.a(String.format("%s.%s in %s:%d%n",
                     trace.getClassName(), trace.getMethodName(), trace.getFileName(), trace.getLineNumber()));
         }
-        return a.toString();
+        return a.reset().toString();
     }
 }
