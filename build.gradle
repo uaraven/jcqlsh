@@ -30,6 +30,7 @@ final def jlineVersion = '3.7.0'
 final def cassandraDriverVersion = '3.3.2'
 
 dependencies {
+    compile 'org.apache.commons:commons-lang3:3.7'
     compile group: 'org.jline', name: 'jline-terminal', version: jlineVersion
     compile group: 'org.jline', name: 'jline-terminal-jansi', version: jlineVersion
     compile group: 'org.jline', name: 'jline-reader', version: jlineVersion

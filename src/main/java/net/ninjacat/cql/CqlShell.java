@@ -20,12 +20,13 @@ import org.jline.terminal.TerminalBuilder;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public final class CqlShell {
 
-    private static final String MAIN_PROMPT = "> ";
+    private static final String MAIN_PROMPT = "jcql> ";
     private static final String CONTINUATION_PROMPT = "... ";
 
 
@@ -33,6 +34,7 @@ public final class CqlShell {
     private final History history;
     private final ShellExecutor shellExecutor;
     private final CqlExecutor cqlExecutor;
+    private final ShellContext context;
     private String prompt;
 
     private CqlShell(final Parameters parameters) throws Exception {
@@ -50,7 +52,7 @@ public final class CqlShell {
         final CassandraProvider cassandraProvider = new CassandraProvider();
         final Session session = cassandraProvider.createSession(parameters, terminal);
 
-        final ShellContext context = new ShellContext(terminal, session);
+        this.context = new ShellContext(terminal, session);
 
         this.cqlExecutor = new CqlExecutor(context);
         this.shellExecutor = new ShellExecutor(context);
@@ -98,6 +100,11 @@ public final class CqlShell {
             final StringBuilder cmdBuilder = new StringBuilder();
 
             while (true) {
+                if (this.context.getSession().getLoggedKeyspace() != null) {
+                    setPrompt(String.format("jcql:%s> ", this.context.getSession().getLoggedKeyspace()));
+                } else {
+                    setPrompt(prompt);
+                }
                 final String line;
                 try {
                     line = this.reader.readLine(this.prompt);
@@ -105,10 +112,7 @@ public final class CqlShell {
                     continue;
                 }
 
-                final List<Token> parsed = CqlTokenizer.parse(cmdBuilder.toString() + line)
-                        .stream()
-                        .filter(t -> t.getTokenType() != TokenType.WHITESPACE)
-                        .collect(Collectors.toList());
+                final List<Token> parsed = CqlTokenizer.parse(cmdBuilder.toString() + line);
 
                 if (!parsed.isEmpty()) {
                     final String command = parsed.get(0).getToken();
