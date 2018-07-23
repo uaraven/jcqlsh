@@ -1,5 +1,8 @@
 package net.ninjacat.cql.parser;
 
+/**
+ * Parsed token
+ */
 public class Token {
     private final int index;
     private final String token;

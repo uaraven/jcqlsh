@@ -16,10 +16,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
+/**
+ * Executes Cql queries
+ */
 public class CqlExecutor {
 
     private final Set<DataType> FLEXIBLE_COLUMN_TYPES = ImmutableSet.of(
@@ -34,6 +36,11 @@ public class CqlExecutor {
         this.context = context;
     }
 
+    /**
+     * Executes a query. Prints result in a table
+     *
+     * @param line List of tokens comprising a query string. Must contain all the original whitespace
+     */
     public void execute(final List<Token> line) {
         final String cqlQuery = buildQueryLine(line);
         try {
@@ -48,6 +55,11 @@ public class CqlExecutor {
         }
     }
 
+    /**
+     * Prints table header
+     * @param resultSet Result of the query
+     * @param columnWidths List of column widths
+     */
     private void printHeader(ResultSet resultSet, List<Integer> columnWidths) {
 
         final List<ColumnAndWidth> columnsAndWidths = Streams.zip(
@@ -79,6 +91,11 @@ public class CqlExecutor {
         context.writer().println(ln2);
     }
 
+    /**
+     * Prints result row
+     * @param row {@link Row} of the result set
+     * @param columnWidths List of column widths
+     */
     private void printRow(final Row row, final List<Integer> columnWidths) {
 
         final Ansi ln = ansi();

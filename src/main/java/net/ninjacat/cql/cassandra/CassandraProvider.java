@@ -19,6 +19,9 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+/**
+ * Creates a session to a Cassandra cluster
+ */
 public class CassandraProvider {
     public Session createSession(Parameters connectionParameters, Terminal terminal) throws Exception {
 

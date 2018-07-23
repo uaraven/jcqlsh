@@ -4,6 +4,9 @@ import com.beust.jcommander.Parameter;
 
 import java.io.File;
 
+/**
+ * Command line parameters
+ */
 public class Parameters {
     @Parameter(description = "Cassandra host to connect to in host[:port]")
     private String host = "localhost";

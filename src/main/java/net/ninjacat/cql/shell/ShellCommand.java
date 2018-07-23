@@ -5,6 +5,9 @@ import net.ninjacat.cql.parser.Token;
 
 import java.util.List;
 
+/**
+ * Base interface for a shell command.
+ */
 @FunctionalInterface
 public interface ShellCommand {
 

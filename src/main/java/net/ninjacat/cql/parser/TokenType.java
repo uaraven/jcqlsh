@@ -1,5 +1,8 @@
 package net.ninjacat.cql.parser;
 
+/**
+ * Types of tokens which {@link CqlTokenizer} can distinguish
+ */
 public enum TokenType {
     WHITESPACE,
     KEYWORD,

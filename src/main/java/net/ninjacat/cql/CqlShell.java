@@ -20,14 +20,13 @@ import org.jline.terminal.TerminalBuilder;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public final class CqlShell {
 
     private static final String MAIN_PROMPT = "jcql> ";
-    private static final String CONTINUATION_PROMPT = "... ";
+    private static final String CONTINUATION_PROMPT = " ... ";
 
 
     private final LineReader reader;

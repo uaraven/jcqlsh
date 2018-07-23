@@ -31,7 +31,7 @@ public class ShellExecutor {
     }
 
     public void execute(final List<Token> tokens) {
-        COMMANDS.get(tokens.get(0).getToken().toLowerCase()).execute(context, tokens.subList(1, tokens.size()));
+        COMMANDS.get(tokens.get(0).getToken().toLowerCase()).execute(context, tokens);
     }
 
     private static void exit(final ShellContext context, final List<Token> command) {
