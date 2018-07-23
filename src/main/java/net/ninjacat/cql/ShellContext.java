@@ -6,7 +6,7 @@ import org.jline.terminal.Terminal;
 import java.io.PrintWriter;
 
 /**
- * Context of the shell. Contains terminal, Cassandra session and gives access to {@link PrintWriter}
+ * Context of the shell. Contains terminal, KeyspaceTable session and gives access to {@link PrintWriter}
  */
 public class ShellContext {
     private final Terminal terminal;

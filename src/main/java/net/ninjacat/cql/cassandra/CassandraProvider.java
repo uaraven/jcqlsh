@@ -20,7 +20,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
- * Creates a session to a Cassandra cluster
+ * Creates a session to a KeyspaceTable cluster
  */
 public class CassandraProvider {
     public Session createSession(Parameters connectionParameters, Terminal terminal) throws Exception {
@@ -53,7 +53,7 @@ public class CassandraProvider {
     }
 
     /**
-     * Sets up SSL connection to Cassandra
+     * Sets up SSL connection to KeyspaceTable
      *
      * @param parameters Command line parameters
      * @return {@link SSLContext}

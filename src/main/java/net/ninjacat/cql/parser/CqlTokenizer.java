@@ -13,9 +13,9 @@ import static net.ninjacat.cql.utils.Keywords.readResource;
  * Does not understand semantics
  */
 public class CqlTokenizer {
-    private static final String DELIM = " \t\"'\n\r;,.()[]<>=?`";
+    private static final String DELIM = " \t\"'\n\r;,()[]<>=?`";
     private static final Set<String> WHITESPACE = ImmutableSet.of(" ", "\t", "\n", "\r");
-    private static final Set<String> SYMBOLS = ImmutableSet.of(",", ".", "(", ")", "[", "]", "<", ">", "=", "?", "*");
+    private static final Set<String> SYMBOLS = ImmutableSet.of(",", "(", ")", "[", "]", "<", ">", "=", "?", "*");
     private static final Set<String> KEYWORDS = readResource("/keywords");
     private static final Set<String> TYPES = readResource("/types");
     private static final Set<String> SHELL = readResource("/shell");

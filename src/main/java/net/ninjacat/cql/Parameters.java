@@ -8,7 +8,7 @@ import java.io.File;
  * Command line parameters
  */
 public class Parameters {
-    @Parameter(description = "Cassandra host to connect to in host[:port]")
+    @Parameter(description = "KeyspaceTable host to connect to in host[:port]")
     private String host = "localhost";
 
     @Parameter(names = "--ssl", description = "Use SSL to connect to server")

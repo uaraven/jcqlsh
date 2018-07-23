@@ -86,6 +86,7 @@ public final class CqlShell {
             cqlShell.repl();
         } catch (final Exception ex) {
             System.err.println("Terminated with error: " + ex.getMessage());
+            System.exit(0);
         }
     }
 

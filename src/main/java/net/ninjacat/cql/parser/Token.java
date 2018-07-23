@@ -17,7 +17,7 @@ public class Token {
     }
 
     public int getIndex() {
-        return index;
+        return this.index;
     }
 
     public int getCursorPos() {
@@ -30,5 +30,10 @@ public class Token {
 
     public TokenType getTokenType() {
         return this.tokenType;
+    }
+
+    @Override
+    public String toString() {
+        return this.token;
     }
 }
