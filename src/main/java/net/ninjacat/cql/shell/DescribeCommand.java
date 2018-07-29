@@ -31,7 +31,7 @@ public class DescribeCommand implements ShellCommand {
         final List<Token> filteredTokens = Tokens.stripWhitespace(tokens);
         try {
             if (filteredTokens.size() < 2) {
-                throw new DescribeException("Parameter expected");
+                throw new ShellException("Parameter expected");
             }
             switch (filteredTokens.get(1).getToken().toLowerCase()) {
                 case "keyspaces":
@@ -45,7 +45,7 @@ public class DescribeCommand implements ShellCommand {
                         final String keyspaceName = filteredTokens.get(2).getToken();
                         listKeyspace(context, keyspaceName);
                     } catch (final Exception ex) {
-                        throw new DescribeException(ex.getMessage(), ex.getCause());
+                        throw new ShellException(ex.getMessage(), ex.getCause());
                     }
                     break;
                 case "table":
@@ -53,7 +53,7 @@ public class DescribeCommand implements ShellCommand {
                         final KeyspaceTable keyspaceName = KeyspaceTable.of(filteredTokens.get(2).getToken());
                         listTable(context, keyspaceName);
                     } catch (final Exception ex) {
-                        throw new DescribeException(ex.getMessage(), ex.getCause());
+                        throw new ShellException(ex.getMessage(), ex.getCause());
                     }
                     break;
                 default:
@@ -69,18 +69,18 @@ public class DescribeCommand implements ShellCommand {
                             }
                         }
                     } catch (final Exception ex) {
-                        throw new DescribeException(ex.getMessage(), ex.getCause());
+                        throw new ShellException(ex.getMessage(), ex.getCause());
                     }
             }
-        } catch (final DescribeException ex) {
-            context.writer().println(ansi().fgRed().a(String.format("Improper %s command: %s", tokens.get(0), ex.getMessage())).reset());
+        } catch (final ShellException ex) {
+            context.writer().println(formatError("Improper %s command: %s", tokens.get(0), ex.getMessage()));
         }
     }
 
     private void listKeyspace(final ShellContext context, final String keyspaceName) {
         final KeyspaceMetadata keyspace = context.getSession().getCluster().getMetadata().getKeyspace(keyspaceName);
         if (keyspace == null) {
-            throw new DescribeException("Unknown keyspace: " + keyspaceName);
+            throw new ShellException("Unknown keyspace: " + keyspaceName);
         }
         context.writer().println(keyspace.exportAsString());
         context.writer().println();
@@ -89,7 +89,7 @@ public class DescribeCommand implements ShellCommand {
     private void listTable(final ShellContext context, final KeyspaceTable keyspTable) {
         final String keyspaceName = keyspTable.hasKeyspace() ? keyspTable.getKeyspace() : context.getSession().getLoggedKeyspace();
         if (keyspaceName == null || keyspaceName.isEmpty()) {
-            throw new DescribeException("Keyspace not specified");
+            throw new ShellException("Keyspace not specified");
         }
         final KeyspaceMetadata keyspace = context.getSession().getCluster().getMetadata().getKeyspace(keyspaceName);
         final TableMetadata table = keyspace.getTable(keyspTable.getTable());

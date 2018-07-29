@@ -11,10 +11,12 @@ import java.io.PrintWriter;
 public class ShellContext {
     private final Terminal terminal;
     private final Session session;
+    private boolean tracingEnabled;
 
     ShellContext(final Terminal terminal, final Session session) {
         this.terminal = terminal;
         this.session = session;
+        this.tracingEnabled = false;
     }
 
     public PrintWriter writer() {
@@ -27,5 +29,13 @@ public class ShellContext {
 
     public Session getSession() {
         return this.session;
+    }
+
+    public boolean isTracingEnabled() {
+        return this.tracingEnabled;
+    }
+
+    public void setTracingEnabled(final boolean tracingEnabled) {
+        this.tracingEnabled = tracingEnabled;
     }
 }

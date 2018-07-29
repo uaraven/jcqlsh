@@ -12,6 +12,7 @@ import net.ninjacat.cql.parser.Token;
 import net.ninjacat.cql.parser.TokenType;
 import net.ninjacat.cql.shell.ShellExecutor;
 import net.ninjacat.cql.utils.Keywords;
+import net.ninjacat.cql.utils.Utils;
 import org.jline.reader.*;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.history.DefaultHistory;
@@ -19,15 +20,16 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class CqlShell {
+public final class CqlShell implements Closeable, AutoCloseable {
 
     private static final String MAIN_PROMPT = "jcql> ";
     private static final String CONTINUATION_PROMPT = " ... ";
-
+    private static final String JANSI_STRIP = "jansi.strip";
 
     private final LineReader reader;
     private final History history;
@@ -37,7 +39,10 @@ public final class CqlShell {
     private String prompt;
 
     private CqlShell(final Parameters parameters) throws Exception {
-        final Terminal terminal = TerminalBuilder.terminal();
+
+        final Terminal terminal = TerminalBuilder.builder().dumb(System.console() == null).build();
+
+
         this.history = createHistory();
 
         this.reader = LineReaderBuilder.builder()
@@ -53,8 +58,8 @@ public final class CqlShell {
 
         this.context = new ShellContext(terminal, session);
 
-        this.cqlExecutor = new CqlExecutor(context);
-        this.shellExecutor = new ShellExecutor(context);
+        this.cqlExecutor = new CqlExecutor(this.context);
+        this.shellExecutor = new ShellExecutor(this.context);
     }
 
     private static History createHistory() throws IOException {
@@ -81,12 +86,10 @@ public final class CqlShell {
                 .build();
         jc.parse(args);
 
-        try {
-            final CqlShell cqlShell = new CqlShell(connectionParameters);
+        try (final CqlShell cqlShell = new CqlShell(connectionParameters)) {
             cqlShell.repl();
         } catch (final Exception ex) {
             System.err.println("Terminated with error: " + ex.getMessage());
-            System.exit(0);
         }
     }
 
@@ -103,7 +106,7 @@ public final class CqlShell {
                 if (this.context.getSession().getLoggedKeyspace() != null) {
                     setPrompt(String.format("jcql:%s> ", this.context.getSession().getLoggedKeyspace()));
                 } else {
-                    setPrompt(prompt);
+                    setPrompt(this.prompt);
                 }
                 final String line;
                 try {
@@ -134,6 +137,7 @@ public final class CqlShell {
             }
         } catch (final EndOfFileException ignored) {
             System.out.println("\nDone");
+            Utils.closeQuietly(this.context.getTerminal());
             System.exit(0);
         } finally {
             try {
@@ -144,6 +148,11 @@ public final class CqlShell {
     }
 
     private boolean isShellCommand(final String command) {
-        return this.shellExecutor.isShellCommand(command);
+        return ShellExecutor.isShellCommand(command);
+    }
+
+    @Override
+    public void close() throws IOException {
+        Utils.closeQuietly(this.context.getTerminal());
     }
 }

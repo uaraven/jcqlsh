@@ -23,23 +23,30 @@ public class Parameters {
     @Parameter(names = "--keystore-password", description = "Password to keystore")
     private String keystorePassword;
 
+    @Parameter(names = "--no-color", description = "Do not use colored output")
+    private boolean noColor = false;
+
     public String getHost() {
-        return host;
+        return this.host;
     }
 
     public boolean isUseSsl() {
-        return useSsl;
+        return this.useSsl;
     }
 
     public boolean isUsafeSsl() {
-        return usafeSsl;
+        return this.usafeSsl;
     }
 
     public File getKeystore() {
-        return keystore;
+        return this.keystore;
     }
 
     public String getKeystorePassword() {
-        return keystorePassword;
+        return this.keystorePassword;
+    }
+
+    public boolean isNoColor() {
+        return this.noColor;
     }
 }
