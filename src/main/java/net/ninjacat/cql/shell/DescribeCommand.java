@@ -1,7 +1,9 @@
 package net.ninjacat.cql.shell;
 
 import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.TableMetadata;
+import net.ninjacat.cql.AnsiHighlighter;
 import net.ninjacat.cql.ShellContext;
 import net.ninjacat.cql.parser.Token;
 import net.ninjacat.cql.parser.Tokens;
@@ -18,6 +20,7 @@ import static org.fusesource.jansi.Ansi.ansi;
  * Implementation of 'describe' command.
  * <pre>
  *     Supports following parameters:
+ *     - desc cluster
  *     - desc keyspaces - shows list of all keyspaces
  *     - desc tables - shows list of all tables in current keyspace or list of all tables across all keyspaces
  *     - desc [keyspace] "keyspace_name" - shows CQL create statements for keyspace
@@ -34,6 +37,9 @@ public class DescribeCommand implements ShellCommand {
                 throw new ShellException("Parameter expected");
             }
             switch (filteredTokens.get(1).getToken().toLowerCase()) {
+                case "cluster":
+                    listCluster(context);
+                    break;
                 case "keyspaces":
                     listKeyspaces(context);
                     break;
@@ -77,28 +83,45 @@ public class DescribeCommand implements ShellCommand {
         }
     }
 
-    private void listKeyspace(final ShellContext context, final String keyspaceName) {
+    private static void listCluster(final ShellContext context) {
+        final Metadata metadata = context.getSession().getCluster().getMetadata();
+        context.writer().println();
+        context.writer().println("Cluster: " + metadata.getClusterName());
+        context.writer().println("Partitioner: " + metadata.getPartitioner());
+        context.writer().println("Hosts: ");
+        metadata.getAllHosts().forEach(host -> {
+            context.writer().println(String.format("    %s [%s], rack: %s, v.%s - %s",
+                    host.toString(),
+                    host.getHostId(),
+                    host.getRack(),
+                    host.getCassandraVersion(),
+                    host.getState()
+            ));
+        });
+    }
+
+    private static void listKeyspace(final ShellContext context, final String keyspaceName) {
         final KeyspaceMetadata keyspace = context.getSession().getCluster().getMetadata().getKeyspace(keyspaceName);
         if (keyspace == null) {
             throw new ShellException("Unknown keyspace: " + keyspaceName);
         }
-        context.writer().println(keyspace.exportAsString());
+        context.writer().println(AnsiHighlighter.highlight(keyspace.exportAsString()));
         context.writer().println();
     }
 
-    private void listTable(final ShellContext context, final KeyspaceTable keyspTable) {
+    private static void listTable(final ShellContext context, final KeyspaceTable keyspTable) {
         final String keyspaceName = keyspTable.hasKeyspace() ? keyspTable.getKeyspace() : context.getSession().getLoggedKeyspace();
         if (keyspaceName == null || keyspaceName.isEmpty()) {
             throw new ShellException("Keyspace not specified");
         }
         final KeyspaceMetadata keyspace = context.getSession().getCluster().getMetadata().getKeyspace(keyspaceName);
         final TableMetadata table = keyspace.getTable(keyspTable.getTable());
-        context.writer().println(table.exportAsString());
+        context.writer().println(AnsiHighlighter.highlight(table.exportAsString()));
         context.writer().println();
     }
 
 
-    private void listTables(final ShellContext context) {
+    private static void listTables(final ShellContext context) {
         final String currentKeyspace = context.getSession().getLoggedKeyspace();
         if (currentKeyspace == null) {
             context.getSession().getCluster().getMetadata().getKeyspaces().forEach(k -> {
@@ -113,7 +136,7 @@ public class DescribeCommand implements ShellCommand {
         }
     }
 
-    private void listTablesForKeyspace(final ShellContext context, final String keyspaceName) {
+    private static void listTablesForKeyspace(final ShellContext context, final String keyspaceName) {
         final KeyspaceMetadata keyspace = context.getSession().getCluster().getMetadata().getKeyspace(keyspaceName);
         final int maxWidth = context.getTerminal().getWidth();
         context.writer().println();
@@ -134,7 +157,7 @@ public class DescribeCommand implements ShellCommand {
         context.writer().println();
     }
 
-    private void listKeyspaces(final ShellContext context) {
+    private static void listKeyspaces(final ShellContext context) {
         final String currentKeyspace = context.getSession().getLoggedKeyspace();
         final List<KeyspaceMetadata> keyspaces = context.getSession().getCluster().getMetadata().getKeyspaces();
         keyspaces.forEach(keyspaceMetadata -> {

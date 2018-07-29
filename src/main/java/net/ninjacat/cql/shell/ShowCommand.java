@@ -30,7 +30,7 @@ public class ShowCommand implements ShellCommand {
         final List<Token> filteredTokens = Tokens.stripWhitespace(tokens);
         try {
             if (filteredTokens.size() < 2) {
-                throw new ShellException("Invalid show command");
+                throw new ShellException("Not enough arguments. Usage:\n   show version|host|session|sessions");
             }
             switch (filteredTokens.get(1).getToken().toLowerCase()) {
                 case "version":
@@ -64,7 +64,7 @@ public class ShowCommand implements ShellCommand {
                     new CqlExecutor(context).execute("select session_id from system_traces.sessions", false);
                     break;
                 default:
-                    throw new ShellException("Invalid show command");
+                    throw new ShellException(String.format("Unknown argument '%s'", filteredTokens.get(1).getToken()));
             }
         } catch (final ShellException ex) {
             context.writer().println(formatError("Improper %s command: %s", tokens.get(0), ex.getMessage()));
@@ -72,7 +72,7 @@ public class ShowCommand implements ShellCommand {
 
     }
 
-    private void showSessions(final ShellContext context, final UUID sessionId) {
+    private static void showSessions(final ShellContext context, final UUID sessionId) {
         final BoundStatement statement = context.getSession()
                 .prepare("select * from system_traces.sessions where session_id = %s")
                 .bind(sessionId);

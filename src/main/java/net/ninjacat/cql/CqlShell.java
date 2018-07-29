@@ -29,7 +29,6 @@ public final class CqlShell implements Closeable, AutoCloseable {
 
     private static final String MAIN_PROMPT = "jcql> ";
     private static final String CONTINUATION_PROMPT = " ... ";
-    private static final String JANSI_STRIP = "jansi.strip";
 
     private final LineReader reader;
     private final History history;
