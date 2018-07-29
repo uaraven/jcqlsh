@@ -48,8 +48,15 @@ public class DescribeCommand implements ShellCommand {
                     break;
                 case "keyspace":
                     try {
-                        final String keyspaceName = filteredTokens.get(2).getToken();
-                        listKeyspace(context, keyspaceName);
+                        if ((filteredTokens.size() < 3) && context.getSession().getLoggedKeyspace() == null) {
+                            throw new ShellException("Keyspace name expected");
+                        }
+                        if (filteredTokens.size() >= 3) {
+                            final String keyspaceName = filteredTokens.get(2).getToken();
+                            listKeyspace(context, keyspaceName);
+                        } else {
+                            listKeyspace(context, context.getSession().getLoggedKeyspace());
+                        }
                     } catch (final Exception ex) {
                         throw new ShellException(ex.getMessage(), ex.getCause());
                     }
