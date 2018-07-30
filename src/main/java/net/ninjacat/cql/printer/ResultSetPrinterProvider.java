@@ -15,8 +15,8 @@ public class ResultSetPrinterProvider {
                     @Override
                     public ResultSetPrinter load(final ResultSetPrinterType key) throws Exception {
                         switch (key) {
-                            case NICE:
-                            case FILE:
+                            case TABLE:
+                            case FLAT:
                             default:
                                 return new NiceResultSetPrinter(context);
                         }

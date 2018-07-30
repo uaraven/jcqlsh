@@ -19,7 +19,7 @@ public class ShellContext {
         this.terminal = terminal;
         this.session = session;
         this.tracingEnabled = false;
-        this.resultSetPrinter = ResultSetPrinterType.NICE;
+        this.resultSetPrinter = ResultSetPrinterType.TABLE;
     }
 
     public PrintWriter writer() {

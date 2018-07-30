@@ -20,10 +20,10 @@ import java.util.stream.IntStream;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
-public class NiceResultSetPrinter extends BaseResultSetPrinter {
+public class FlatResultSetPrinter extends BaseResultSetPrinter {
 
 
-    public NiceResultSetPrinter(final ShellContext context) {
+    public FlatResultSetPrinter(final ShellContext context) {
         super(context);
     }
 
@@ -45,12 +45,19 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
         final Ansi ln2 = ansi().fgYellow();
         for (int index = 0; index < columnsAndWidths.size(); index++) {
             final ColumnAndWidth cw = columnsAndWidths.get(index);
-            if (index > 0) {
+            if (index == 0) {
+                ln.fgYellow().a("| ");
+            } else {
                 ln.fgYellow().a(" | ");
+            }
+            ln2.a("+");
+            ln.fgBrightBlue().a(StringUtils.center(cw.text, cw.width));
+            ln2.a(StringUtils.center("", cw.width + 2, "-"));
+            if (index == columnsAndWidths.size() - 1) {
+                ln.fgYellow().a(" |");
                 ln2.a("+");
             }
-            ln.fgBrightBlue().a(StringUtils.center(cw.text, cw.width));
-            ln2.a(StringUtils.center("", cw.width + 1, "-"));
+
         }
         ln.reset();
         ln2.reset();
@@ -88,7 +95,7 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
 
     @Override
     protected List<Integer> calculateColumnWidths(final ResultSet resultSet) {
-        final AtomicInteger totalWidth = new AtomicInteger(getContext().getTerminal().getWidth() + 1);
+        final AtomicInteger totalWidth = new AtomicInteger(getContext().getTerminal().getWidth() - 1);
 
         final ColumnDefinitions columnDefinitions = resultSet.getColumnDefinitions();
 
@@ -159,11 +166,16 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
                 final Ansi ln = ansi();
 
                 for (int index = 0; index < line.size(); index++) {
-                    if (index > 0) {
+                    if (index == 0) {
+                        ln.fgYellow().a("| ");
+                    } else {
                         ln.fgYellow().a(" | ");
                     }
                     final String text = Strings.nullToEmpty(line.get(index).text);
                     ln.reset().a(StringUtils.rightPad(text, line.get(index).width));
+                    if (index == line.size() - 1) {
+                        ln.fgYellow().a(" |");
+                    }
                 }
                 ln.reset();
                 writer.println(ln);
