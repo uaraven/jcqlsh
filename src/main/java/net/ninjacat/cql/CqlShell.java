@@ -102,11 +102,7 @@ public final class CqlShell implements Closeable, AutoCloseable {
             final StringBuilder cmdBuilder = new StringBuilder();
 
             while (true) {
-                if (this.context.getSession().getLoggedKeyspace() != null) {
-                    setPrompt(String.format("jcql:%s> ", this.context.getSession().getLoggedKeyspace()));
-                } else {
-                    setPrompt(this.prompt);
-                }
+                setPrompt(this.prompt);
                 final String line;
                 try {
                     line = this.reader.readLine(this.prompt);
@@ -120,15 +116,15 @@ public final class CqlShell implements Closeable, AutoCloseable {
                     final String command = parsed.get(0).getToken();
                     if (isShellCommand(command)) {
                         this.shellExecutor.execute(parsed);
+                        this.prompt = mainPrompt();
                     } else {
-
                         if (parsed.get(parsed.size() - 1).getTokenType() != TokenType.SEMICOLON) {
-                            setPrompt(CONTINUATION_PROMPT);
+                            this.prompt = CONTINUATION_PROMPT;
                             cmdBuilder.append(line);
                         } else {
-                            setPrompt(MAIN_PROMPT);
                             cmdBuilder.setLength(0);
                             this.cqlExecutor.execute(parsed);
+                            this.prompt = mainPrompt();
                         }
                     }
                 }
@@ -143,6 +139,14 @@ public final class CqlShell implements Closeable, AutoCloseable {
                 this.history.save();
             } catch (final IOException ignored) {
             }
+        }
+    }
+
+    private String mainPrompt() {
+        if (this.context.getSession().getLoggedKeyspace() != null) {
+            return String.format("jcql:%s> ", this.context.getSession().getLoggedKeyspace());
+        } else {
+            return MAIN_PROMPT;
         }
     }
 

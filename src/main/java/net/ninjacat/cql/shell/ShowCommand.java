@@ -6,9 +6,9 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import net.ninjacat.cql.ShellContext;
 import net.ninjacat.cql.cassandra.CqlExecutor;
-import net.ninjacat.cql.cassandra.CqlResultSetPrinter;
 import net.ninjacat.cql.parser.Token;
 import net.ninjacat.cql.parser.Tokens;
+import net.ninjacat.cql.printer.NiceResultSetPrinter;
 import net.ninjacat.cql.utils.JCqlSh;
 
 import java.util.List;
@@ -77,7 +77,7 @@ public class ShowCommand implements ShellCommand {
                 .prepare("select * from system_traces.sessions where session_id = %s")
                 .bind(sessionId);
         final ResultSet resultSet = context.getSession().execute(statement);
-        new CqlResultSetPrinter(context).printResultSet(resultSet);
+        new NiceResultSetPrinter(context).printResultSet(resultSet);
     }
 
     private static final class Versions {

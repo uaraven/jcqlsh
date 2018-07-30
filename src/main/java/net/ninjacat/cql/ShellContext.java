@@ -1,6 +1,7 @@
 package net.ninjacat.cql;
 
 import com.datastax.driver.core.Session;
+import net.ninjacat.cql.printer.ResultSetPrinterType;
 import org.jline.terminal.Terminal;
 
 import java.io.PrintWriter;
@@ -11,12 +12,14 @@ import java.io.PrintWriter;
 public class ShellContext {
     private final Terminal terminal;
     private final Session session;
+    private ResultSetPrinterType resultSetPrinter;
     private boolean tracingEnabled;
 
     ShellContext(final Terminal terminal, final Session session) {
         this.terminal = terminal;
         this.session = session;
         this.tracingEnabled = false;
+        this.resultSetPrinter = ResultSetPrinterType.NICE;
     }
 
     public PrintWriter writer() {
@@ -37,5 +40,13 @@ public class ShellContext {
 
     public void setTracingEnabled(final boolean tracingEnabled) {
         this.tracingEnabled = tracingEnabled;
+    }
+
+    public ResultSetPrinterType getResultSetPrinter() {
+        return this.resultSetPrinter;
+    }
+
+    public void setResultSetPrinter(final ResultSetPrinterType resultSetPrinter) {
+        this.resultSetPrinter = resultSetPrinter;
     }
 }

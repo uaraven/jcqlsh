@@ -9,7 +9,13 @@ public final class Exceptions {
     private Exceptions() {
     }
 
+    private static final boolean showStackTrace = Boolean.getBoolean("error.stack.trace");
+
     public static String toAnsiException(final Throwable thr) {
+        return showStackTrace ? toAnsiExceptionLong(thr) : toAnsiExceptionShort(thr);
+    }
+
+    private static String toAnsiExceptionLong(final Throwable thr) {
         final Ansi a = ansi().fg(Ansi.Color.RED)
                 .bold().a(thr.getMessage()).boldOff()
                 .a("\nCaused by ").a(thr.getCause().toString())
@@ -26,5 +32,11 @@ public final class Exceptions {
                     trace.getClassName(), trace.getMethodName(), trace.getFileName(), trace.getLineNumber()));
         }
         return a.reset().toString();
+    }
+
+
+    private static String toAnsiExceptionShort(final Throwable thr) {
+        return ansi().fg(Ansi.Color.RED).a(thr.getClass().getSimpleName()).a(":")
+                .bold().a(thr.getMessage()).boldOff().reset().toString();
     }
 }

@@ -4,6 +4,8 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import net.ninjacat.cql.ShellContext;
 import net.ninjacat.cql.parser.Token;
+import net.ninjacat.cql.printer.ResultSetPrinter;
+import net.ninjacat.cql.printer.ResultSetPrinterProvider;
 import net.ninjacat.cql.utils.Exceptions;
 
 import java.util.List;
@@ -17,9 +19,11 @@ public class CqlExecutor {
 
 
     private final ShellContext context;
+    private final ResultSetPrinterProvider printerProvider;
 
     public CqlExecutor(final ShellContext context) {
         this.context = context;
+        this.printerProvider = new ResultSetPrinterProvider(context);
     }
 
 
@@ -44,10 +48,14 @@ public class CqlExecutor {
                 preparedStatement.enableTracing();
             }
             final ResultSet resultSet = this.context.getSession().execute(preparedStatement.bind());
-            new CqlResultSetPrinter(this.context).printResultSet(resultSet);
+            getResultSetPrinter().printResultSet(resultSet);
         } catch (final Exception ex) {
             this.context.writer().println(Exceptions.toAnsiException(ex));
         }
+    }
+
+    private ResultSetPrinter getResultSetPrinter() {
+        return this.printerProvider.get(this.context.getResultSetPrinter());
     }
 
 
