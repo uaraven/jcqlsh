@@ -94,7 +94,7 @@ public class FlatResultSetPrinter extends BaseResultSetPrinter {
     }
 
     @Override
-    protected List<Integer> calculateColumnWidths(final ResultSet resultSet) {
+    protected List<Integer> calculateColumnWidths(final ResultSet resultSet, List<Row> rows) {
         final AtomicInteger totalWidth = new AtomicInteger(getContext().getTerminal().getWidth() - 1);
 
         final ColumnDefinitions columnDefinitions = resultSet.getColumnDefinitions();

@@ -2,8 +2,10 @@ package net.ninjacat.cql;
 
 import com.datastax.driver.core.Session;
 import net.ninjacat.cql.printer.ResultSetPrinterType;
+import net.ninjacat.cql.shell.ShellException;
 import org.jline.terminal.Terminal;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -48,5 +50,19 @@ public class ShellContext {
 
     public void setResultSetPrinter(final ResultSetPrinterType resultSetPrinter) {
         this.resultSetPrinter = resultSetPrinter;
+    }
+
+    public void waitForKeypress() {
+        try {
+            int read;
+            do {
+                read = this.getTerminal().reader().read(Long.MAX_VALUE);
+                if (read == -1) {
+                    throw new ShellException("Terminated");
+                }
+            } while (read < 0);
+        } catch (final IOException e) {
+            throw new ShellException("", e);
+        }
     }
 }

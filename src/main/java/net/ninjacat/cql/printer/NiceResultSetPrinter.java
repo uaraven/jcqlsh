@@ -70,9 +70,9 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
         cells.print(getContext().writer());
     }
 
-    private static Cells buildRowCells(final Row row, final List<Integer> columnWidths) {
+    private Cells buildRowCells(final Row row, final List<Integer> columnWidths) {
         return new Cells(IntStream.range(0, columnWidths.size())
-                .mapToObj(index -> new Cell(Objects.toString(row.getObject(index), "<null>"), columnWidths.get(index)))
+                .mapToObj(index -> new Cell(escapeText(Objects.toString(row.getObject(index), "<null>")), columnWidths.get(index)))
                 .collect(Collectors.toList()));
     }
 
@@ -87,7 +87,7 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
     }
 
     @Override
-    protected List<Integer> calculateColumnWidths(final ResultSet resultSet) {
+    protected List<Integer> calculateColumnWidths(final ResultSet resultSet, List<Row> rows) {
         final AtomicInteger totalWidth = new AtomicInteger(getContext().getTerminal().getWidth() + 1);
 
         final ColumnDefinitions columnDefinitions = resultSet.getColumnDefinitions();
