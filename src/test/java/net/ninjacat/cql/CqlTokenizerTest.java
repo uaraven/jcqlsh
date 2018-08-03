@@ -18,11 +18,10 @@ public class CqlTokenizerTest {
     public void shouldTokenizeBasicQuery() {
         final List<Token> tokens = CqlTokenizer.parse("select * from keyspace_name.table_name;");
 
-        assertThat(tokens, Matchers.hasSize(10));
+        assertThat(tokens, Matchers.hasSize(8));
         assertThat(tokens.stream().map(Token::getTokenType).collect(Collectors.toList()),
                 Matchers.contains(KEYWORD, WHITESPACE, SYMBOL, WHITESPACE,
-                        KEYWORD, WHITESPACE, GENERIC, SYMBOL,
-                        GENERIC, SEMICOLON));
+                        KEYWORD, WHITESPACE, GENERIC, SEMICOLON));
     }
 
     @Test

@@ -21,7 +21,11 @@ public class ShellContext {
         this.terminal = terminal;
         this.session = session;
         this.tracingEnabled = false;
-        this.resultSetPrinter = ResultSetPrinterType.TABLE;
+        this.resultSetPrinter = ResultSetPrinterType.FLAT;
+    }
+
+    public boolean isRunningInTerminal() {
+        return System.console() != null;
     }
 
     public PrintWriter writer() {

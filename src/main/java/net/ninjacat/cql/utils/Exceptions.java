@@ -36,7 +36,7 @@ public final class Exceptions {
 
 
     private static String toAnsiExceptionShort(final Throwable thr) {
-        return ansi().fg(Ansi.Color.RED).a(thr.getClass().getSimpleName()).a(":")
-                .bold().a(thr.getMessage()).boldOff().reset().toString();
+        return ansi().fgRed().a(thr.getClass().getSimpleName()).a(": ")
+                .fgBrightRed().bold().a(thr.getMessage()).boldOff().reset().toString();
     }
 }

@@ -19,6 +19,7 @@ public class ShellExecutor {
             .put("desc", DESCRIBE)
             .put("describe", DESCRIBE)
             .put("show", new ShowCommand())
+            .put("screen", new ScreenCommand())
             .build();
 
 

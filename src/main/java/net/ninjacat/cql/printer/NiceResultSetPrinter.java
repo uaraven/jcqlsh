@@ -50,7 +50,7 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
                 ln2.a("+");
             }
             ln.fgBrightBlue().a(StringUtils.center(cw.text, cw.width));
-            ln2.a(StringUtils.center("", cw.width + 1, "-"));
+            ln2.a(StringUtils.center("", cw.width + 2, "-"));
         }
         ln.reset();
         ln2.reset();
