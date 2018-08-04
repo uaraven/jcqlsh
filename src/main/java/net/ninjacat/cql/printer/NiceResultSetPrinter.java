@@ -1,7 +1,6 @@
 package net.ninjacat.cql.printer;
 
 import com.datastax.driver.core.ColumnDefinitions;
-import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.google.common.base.Strings;
@@ -14,12 +13,12 @@ import org.fusesource.jansi.Ansi;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
+@SuppressWarnings("UnstableApiUsage")
 public class NiceResultSetPrinter extends BaseResultSetPrinter {
 
 
@@ -48,9 +47,11 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
             if (index > 0) {
                 ln.fgYellow().a(" | ");
                 ln2.a("+");
+            } else {
+                ln.a(" ");
             }
             ln.fgBrightBlue().a(StringUtils.center(cw.text, cw.width));
-            ln2.a(StringUtils.center("", cw.width + 2, "-"));
+            ln2.a(StringUtils.center("", cw.width + (index == columnsAndWidths.size() - 1 ? 1 : 2), "-"));
         }
         ln.reset();
         ln2.reset();
@@ -76,57 +77,62 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
                 .collect(Collectors.toList()));
     }
 
-    private static int allocateWidthByType(final DataType type, final String columnName) {
-        if (FLEXIBLE_COLUMN_TYPES.contains(type)) {
-            return DEFAULT_WIDTH;
-        } else if (DataType.uuid().equals(type)) {
-            return 36;
-        } else {
-            return Math.max(16, columnName.length());
-        }
-    }
-
     @Override
-    protected List<Integer> calculateColumnWidths(final ResultSet resultSet, List<Row> rows) {
-        final AtomicInteger totalWidth = new AtomicInteger(getContext().getTerminal().getWidth() + 1);
-
+    protected List<Integer> calculateColumnWidths(final ResultSet resultSet, final List<Row> rows) {
         final ColumnDefinitions columnDefinitions = resultSet.getColumnDefinitions();
 
-        final List<Integer> result = IntStream.range(0, columnDefinitions.size()).mapToObj(it -> 0).collect(Collectors.toList());
+        final int separatorOverhead = (columnDefinitions.size() - 1) * 3 - 1;
 
-        // first allocate all fixed columns
-        Streams.zip(
-                IntStream.range(0, columnDefinitions.size()).boxed(),
-                columnDefinitions.asList().stream(),
-                IndexedColumnDef::new)
-                .filter(icd -> !FLEXIBLE_COLUMN_TYPES.contains(icd.definition.getType()))
-                .forEach(icd -> {
-                    final int width = allocateWidthByType(icd.definition.getType(), icd.definition.getName());
-                    totalWidth.addAndGet(-width - 3);
-                    result.set(icd.index, width);
-                });
+        final IntStream defaultColumnWidths = columnDefinitions.asList().stream().mapToInt(def -> def.getName().length());
 
-        // then split rest of available screen width between flex columns
-        final long flexWidthColumns = columnDefinitions.asList().stream().filter(def -> FLEXIBLE_COLUMN_TYPES.contains(def.getType())).count();
-        if (totalWidth.get() > DEFAULT_WIDTH * flexWidthColumns) {
-            final int flexColumnWidth = (int) ((totalWidth.get() - flexWidthColumns * 3) / flexWidthColumns);
+        final int totalWidth = getContext().getTerminal().getWidth() - separatorOverhead;
 
-            // and fill in spaces
-            for (int i = 0; i < result.size(); i++) {
-                if (result.get(i) == 0) {
-                    result.set(i, flexColumnWidth);
-                }
-            }
+        final List<Integer> columnWidths = rows.stream().map(
+                row -> IntStream.range(0, columnDefinitions.size())
+                        .map(idx -> escapeText(safeGetValue(row, idx)).length()))
+                .reduce(defaultColumnWidths,
+                        (is1, is2) -> Streams.zip(is1.boxed(), is2.boxed(), Math::max).mapToInt(Integer::intValue))
+                .boxed()
+                .collect(Collectors.toList());
 
+        final int totalColumnWidths = columnWidths.stream().mapToInt(i -> i).sum();
+
+        if (totalColumnWidths < totalWidth) {
+            return columnWidths;
         } else {
-            // and fill in spaces
-            for (int i = 0; i < result.size(); i++) {
-                if (result.get(i) == 0) {
-                    result.set(i, DEFAULT_WIDTH);
+            final List<Integer> result = IntStream.range(0, columnDefinitions.size()).mapToObj(it -> 0).collect(Collectors.toList());
+
+            final List<IndexedWidth> sortedFlexCols = IntStream.range(0, columnWidths.size())
+                    .mapToObj(idx -> new IndexedWidth(idx, columnWidths.get(idx), FLEX_TYPES.contains(columnDefinitions.getType(idx))))
+                    .sorted((iw1, iw2) -> {
+                        int c = Boolean.compare(iw1.flexible, iw2.flexible);
+                        if (c == 0) {
+                            return Integer.compare(iw1.width, iw2.width);
+                        } else {
+                            return c;
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            final int fixedColumnWs = sortedFlexCols.stream().filter(iw -> !iw.flexible).mapToInt(iw -> iw.width).sum();
+            final int flexColumnWs = totalWidth - fixedColumnWs;
+            int widthLeft = totalWidth - fixedColumnWs;
+
+            final int threshold = (int) (widthLeft / sortedFlexCols.stream().filter(iw -> iw.flexible).count());
+            for (final IndexedWidth iw : sortedFlexCols) {
+                if (!iw.flexible || iw.width < threshold) {
+                    result.set(iw.index, iw.width);
+                    if (iw.flexible) {
+                        widthLeft -= iw.width;
+                    }
+                } else {
+                    final int newW = iw.width * widthLeft / flexColumnWs - 3;
+                    result.set(iw.index, newW);
                 }
             }
+
+            return result;
         }
-        return result;
     }
 
     private static final class Cells {
@@ -161,6 +167,8 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
                 for (int index = 0; index < line.size(); index++) {
                     if (index > 0) {
                         ln.fgYellow().a(" | ");
+                    } else {
+                        ln.a(" ");
                     }
                     final String text = Strings.nullToEmpty(line.get(index).text);
                     ln.reset().a(StringUtils.rightPad(text, line.get(index).width));
@@ -192,13 +200,15 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter {
 
     }
 
-    private static final class IndexedColumnDef {
+    private static final class IndexedWidth {
         private final int index;
-        private final ColumnDefinitions.Definition definition;
+        private final int width;
+        private final boolean flexible;
 
-        private IndexedColumnDef(final int index, final ColumnDefinitions.Definition definition) {
+        private IndexedWidth(final int index, final int width, final boolean flexible) {
             this.index = index;
-            this.definition = definition;
+            this.width = width;
+            this.flexible = flexible;
         }
     }
 

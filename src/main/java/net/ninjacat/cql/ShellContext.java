@@ -15,6 +15,7 @@ public class ShellContext {
     private final Terminal terminal;
     private final Session session;
     private ResultSetPrinterType resultSetPrinter;
+    private int paging;
     private boolean tracingEnabled;
 
     ShellContext(final Terminal terminal, final Session session) {
@@ -22,6 +23,7 @@ public class ShellContext {
         this.session = session;
         this.tracingEnabled = false;
         this.resultSetPrinter = ResultSetPrinterType.FLAT;
+        this.paging = "dumb".equals(terminal.getType()) ? 40 : terminal.getHeight();
     }
 
     public boolean isRunningInTerminal() {
@@ -54,6 +56,14 @@ public class ShellContext {
 
     public void setResultSetPrinter(final ResultSetPrinterType resultSetPrinter) {
         this.resultSetPrinter = resultSetPrinter;
+    }
+
+    public int getPaging() {
+        return this.paging;
+    }
+
+    public void setPaging(final int paging) {
+        this.paging = paging;
     }
 
     public void waitForKeypress() {

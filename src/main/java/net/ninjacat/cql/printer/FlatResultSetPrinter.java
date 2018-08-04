@@ -14,10 +14,11 @@ import java.util.stream.IntStream;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
+@SuppressWarnings("UnstableApiUsage")
 public class FlatResultSetPrinter extends BaseResultSetPrinter {
 
 
-    public FlatResultSetPrinter(final ShellContext context) {
+    FlatResultSetPrinter(final ShellContext context) {
         super(context);
     }
 
@@ -93,13 +94,13 @@ public class FlatResultSetPrinter extends BaseResultSetPrinter {
         final IntStream defaultColumnWidths = columnDefinitions.asList().stream().mapToInt(def -> def.getName().length());
 
         // first allocate all fixed columns
-        final List<Integer> boxed = rows.stream().map(row ->
-                IntStream.range(0, columnDefinitions.size()).map(idx -> escapeText(row.getObject(idx).toString()).length())
-        ).reduce(defaultColumnWidths, (is1, is2) -> Streams.zip(is1.boxed(), is2.boxed(), Math::max).mapToInt(Integer::intValue))
+        return rows.stream().map(
+                row -> IntStream.range(0, columnDefinitions.size())
+                        .map(idx -> escapeText(safeGetValue(row, idx)).length()))
+                .reduce(defaultColumnWidths,
+                        (is1, is2) -> Streams.zip(is1.boxed(), is2.boxed(), Math::max).mapToInt(Integer::intValue))
                 .boxed().collect(Collectors.toList());
-        return boxed;
     }
-
 
     private static final class ColumnAndWidth {
         private final int width;

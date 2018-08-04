@@ -13,13 +13,12 @@ import java.util.Set;
 
 public abstract class BaseResultSetPrinter implements ResultSetPrinter {
 
-    static final Set<DataType> FLEXIBLE_COLUMN_TYPES = ImmutableSet.of(
+    static final Set<DataType> FLEX_TYPES = ImmutableSet.of(
             DataType.ascii(),
             DataType.text(),
             DataType.varchar(),
             DataType.blob()
     );
-    static final int DEFAULT_WIDTH = 40;
 
     private final ShellContext context;
 
@@ -27,13 +26,16 @@ public abstract class BaseResultSetPrinter implements ResultSetPrinter {
         this.context = context;
     }
 
+    static String safeGetValue(final Row row, final int index) {
+        final Object object = row.getObject(index);
+        return object == null ? "<null>" : object.toString();
+    }
+
     @Override
     public void printResultSet(final ResultSet resultSet) {
         if (!resultSet.getColumnDefinitions().asList().isEmpty()) {
 
-            final int pageSize = Math.max(this.context.getTerminal().getHeight(), 50);
-
-            final Iterator<List<Row>> resultPages = Iterators.partition(resultSet.iterator(), pageSize);
+            final Iterator<List<Row>> resultPages = Iterators.partition(resultSet.iterator(), this.context.getPaging());
             while (resultPages.hasNext()) {
                 this.context.writer().println();
                 final List<Row> results = resultPages.next();
@@ -54,7 +56,7 @@ public abstract class BaseResultSetPrinter implements ResultSetPrinter {
         return this.context;
     }
 
-    public String escapeText(final String text) {
+    String escapeText(final String text) {
         return text.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
     }
 
