@@ -1,29 +1,59 @@
 package net.ninjacat.cql.printer;
 
-import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Streams;
 import net.ninjacat.cql.ShellContext;
+import org.apache.commons.lang3.StringUtils;
+import org.fusesource.jansi.Ansi;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.fusesource.jansi.Ansi.ansi;
 
 public abstract class BaseResultSetPrinter implements ResultSetPrinter {
-
-    static final Set<DataType> FLEX_TYPES = ImmutableSet.of(
-            DataType.ascii(),
-            DataType.text(),
-            DataType.varchar(),
-            DataType.blob()
-    );
 
     private final ShellContext context;
 
     BaseResultSetPrinter(final ShellContext context) {
         this.context = context;
+    }
+
+
+    /**
+     * Prints table header
+     *
+     * @param resultSet    Result of the query
+     * @param columnWidths List of column widths
+     */
+    void printHeader(final ResultSet resultSet, final List<Integer> columnWidths) {
+
+        final List<ColumnAndWidth> columnsAndWidths = Streams.zip(
+                resultSet.getColumnDefinitions().asList().stream().map(ColumnDefinitions.Definition::getName),
+                columnWidths.stream(), ColumnAndWidth::new)
+                .collect(Collectors.toList());
+
+        final Ansi ln = ansi();
+        final Ansi ln2 = ansi().fgYellow();
+        for (int index = 0; index < columnsAndWidths.size(); index++) {
+            final ColumnAndWidth cw = columnsAndWidths.get(index);
+            if (index > 0) {
+                ln.fgYellow().a(" | ");
+                ln2.a("+");
+            } else {
+                ln.a(" ");
+            }
+            ln.fgBrightBlue().a(StringUtils.center(cw.text, cw.width));
+            ln2.a(StringUtils.center("", cw.width + (index == columnsAndWidths.size() - 1 ? 1 : 2), "-"));
+        }
+        ln.reset();
+        ln2.reset();
+        getContext().writer().println(ln);
+        getContext().writer().println(ln2);
     }
 
     static String safeGetValue(final Row row, final int index) {
@@ -62,8 +92,17 @@ public abstract class BaseResultSetPrinter implements ResultSetPrinter {
 
     protected abstract void printRow(Row row, List<Integer> columnWidths);
 
-    protected abstract void printHeader(ResultSet resultSet, List<Integer> columnWidths);
-
     protected abstract List<Integer> calculateColumnWidths(ResultSet resultSet, List<Row> rows);
+
+    static final class ColumnAndWidth {
+        final int width;
+        final String text;
+
+        ColumnAndWidth(final String text, final int width) {
+            this.width = width;
+            this.text = text;
+        }
+    }
+
 
 }

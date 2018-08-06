@@ -19,8 +19,9 @@ public class ResultSetPrinterProvider {
                         switch (key) {
                             case TABLE:
                                 return new NiceResultSetPrinter(context);
-                            case FLAT:
                             case COMPACT:
+                                return new CompactResultSetPrinter(context);
+                            case FLAT:
                             default:
                                 return new FlatResultSetPrinter(context);
                         }

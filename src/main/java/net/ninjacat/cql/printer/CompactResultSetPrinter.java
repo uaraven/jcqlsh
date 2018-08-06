@@ -1,24 +1,20 @@
 package net.ninjacat.cql.printer;
 
-import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import com.google.common.collect.Streams;
 import net.ninjacat.cql.ShellContext;
 import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
 @SuppressWarnings("UnstableApiUsage")
-public class FlatResultSetPrinter extends BaseResultSetPrinter {
+public class CompactResultSetPrinter extends BaseResultSetPrinter implements ScalableColumnsWidthCalculator {
 
 
-    FlatResultSetPrinter(final ShellContext context) {
+    CompactResultSetPrinter(final ShellContext context) {
         super(context);
     }
 
@@ -39,26 +35,24 @@ public class FlatResultSetPrinter extends BaseResultSetPrinter {
             }
             final Object value = row.getObject(index);
             final String text = value == null ? "<null>" : escapeText(value.toString());
-            ln.reset().a(StringUtils.leftPad(text, columnWidths.get(index)));
+            if (text.length() > columnWidths.get(index)) {
+                ln.reset().a(text.substring(0, columnWidths.get(index) - 1) + "…");
+            } else {
+                ln.reset().a(StringUtils.leftPad(text, columnWidths.get(index)));
+            }
             ln.reset();
         }
         this.getContext().writer().println(ln);
     }
 
-
     @Override
     protected List<Integer> calculateColumnWidths(final ResultSet resultSet, final List<Row> rows) {
-        final ColumnDefinitions columnDefinitions = resultSet.getColumnDefinitions();
+        return columnWidths(getContext(), resultSet, rows);
+    }
 
-        final IntStream defaultColumnWidths = columnDefinitions.asList().stream().mapToInt(def -> def.getName().length());
-
-        // first allocate all fixed columns
-        return rows.stream().map(
-                row -> IntStream.range(0, columnDefinitions.size())
-                        .map(idx -> escapeText(safeGetValue(row, idx)).length()))
-                .reduce(defaultColumnWidths,
-                        (is1, is2) -> Streams.zip(is1.boxed(), is2.boxed(), Math::max).mapToInt(Integer::intValue))
-                .boxed().collect(Collectors.toList());
+    @Override
+    public String getText(final Row row, final int idx) {
+        return escapeText(safeGetValue(row, idx));
     }
 
 }
