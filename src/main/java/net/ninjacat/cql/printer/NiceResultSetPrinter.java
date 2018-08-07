@@ -1,6 +1,6 @@
 package net.ninjacat.cql.printer;
 
-import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.Row;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -16,8 +16,14 @@ import java.util.stream.IntStream;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
+/**
+ * ResultSetPrinter that sizes all columns to fit in terminal.
+ * Long lines are wrapped inside column, so each row may span multiple terminal lines.
+ * <p>
+ * This view is easy on the eyes, but hard to copy data
+ */
 @SuppressWarnings("UnstableApiUsage")
-public class NiceResultSetPrinter extends BaseResultSetPrinter implements ScalableColumnsWidthCalculator {
+public class NiceResultSetPrinter extends ResultSetPrinter implements ScalableColumnsWidthCalculator {
 
 
     public NiceResultSetPrinter(final ShellContext context) {
@@ -36,15 +42,15 @@ public class NiceResultSetPrinter extends BaseResultSetPrinter implements Scalab
         cells.print(getContext().writer());
     }
 
-    private Cells buildRowCells(final Row row, final List<Integer> columnWidths) {
+    private static Cells buildRowCells(final Row row, final List<Integer> columnWidths) {
         return new Cells(IntStream.range(0, columnWidths.size())
                 .mapToObj(index -> new Cell(escapeText(Objects.toString(row.getObject(index), "<null>")), columnWidths.get(index)))
                 .collect(Collectors.toList()));
     }
 
     @Override
-    protected List<Integer> calculateColumnWidths(final ResultSet resultSet, final List<Row> rows) {
-        return columnWidths(getContext(), resultSet, rows);
+    protected List<Integer> calculateColumnWidths(final ColumnDefinitions columns, final List<Row> rows) {
+        return columnWidths(getContext(), columns, rows);
     }
 
     @Override

@@ -52,8 +52,7 @@ public final class CqlShell implements Closeable, AutoCloseable {
                 .history(this.history)
                 .build();
 
-        final CassandraProvider cassandraProvider = new CassandraProvider();
-        final Session session = cassandraProvider.createSession(parameters, terminal);
+        final Session session = CassandraProvider.createSession(parameters, terminal);
 
         this.context = new ShellContext(terminal, session);
 
@@ -150,12 +149,12 @@ public final class CqlShell implements Closeable, AutoCloseable {
         }
     }
 
-    private boolean isShellCommand(final String command) {
+    private static boolean isShellCommand(final String command) {
         return ShellExecutor.isShellCommand(command);
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         Utils.closeQuietly(this.context.getTerminal());
     }
 }

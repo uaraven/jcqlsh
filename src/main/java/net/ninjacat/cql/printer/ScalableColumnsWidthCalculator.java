@@ -2,7 +2,6 @@ package net.ninjacat.cql.printer;
 
 import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
@@ -13,6 +12,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Trait that provides column width calculations for ResultSetPrinters with flexible-width columns
+ */
 @SuppressWarnings({"UnstableApiUsage", "InterfaceMayBeAnnotatedFunctional"})
 public interface ScalableColumnsWidthCalculator {
 
@@ -24,17 +26,15 @@ public interface ScalableColumnsWidthCalculator {
     );
 
 
-    default List<Integer> columnWidths(final ShellContext context, final ResultSet resultSet, final List<Row> rows) {
-        final ColumnDefinitions columnDefinitions = resultSet.getColumnDefinitions();
+    default List<Integer> columnWidths(final ShellContext context, final ColumnDefinitions columns, final List<Row> rows) {
+        final int separatorOverhead = (columns.size() - 1) * 3 - 1;
 
-        final int separatorOverhead = (columnDefinitions.size() - 1) * 3 - 1;
-
-        final IntStream defaultColumnWidths = columnDefinitions.asList().stream().mapToInt(def -> def.getName().length());
+        final IntStream defaultColumnWidths = columns.asList().stream().mapToInt(def -> def.getName().length());
 
         final int totalWidth = context.getTerminal().getWidth() - separatorOverhead;
 
         final List<Integer> columnWidths = rows.stream().map(
-                row -> IntStream.range(0, columnDefinitions.size())
+                row -> IntStream.range(0, columns.size())
                         .map(idx -> getText(row, idx).length()))
                 .reduce(defaultColumnWidths,
                         (is1, is2) -> Streams.zip(is1.boxed(), is2.boxed(), Math::max).mapToInt(Integer::intValue))
@@ -46,10 +46,10 @@ public interface ScalableColumnsWidthCalculator {
         if (totalColumnWidths < totalWidth) {
             return columnWidths;
         } else {
-            final List<Integer> result = IntStream.range(0, columnDefinitions.size()).mapToObj(it -> 0).collect(Collectors.toList());
+            final List<Integer> result = IntStream.range(0, columns.size()).mapToObj(it -> 0).collect(Collectors.toList());
 
             final List<IndexedWidth> sortedFlexCols = IntStream.range(0, columnWidths.size())
-                    .mapToObj(idx -> new IndexedWidth(idx, columnWidths.get(idx), FLEX_TYPES.contains(columnDefinitions.getType(idx))))
+                    .mapToObj(idx -> new IndexedWidth(idx, columnWidths.get(idx), FLEX_TYPES.contains(columns.getType(idx))))
                     .sorted((iw1, iw2) -> {
                         int c = Boolean.compare(iw1.flexible, iw2.flexible);
                         if (c == 0) {

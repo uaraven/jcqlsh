@@ -22,8 +22,11 @@ import java.security.cert.X509Certificate;
 /**
  * Creates a session to a KeyspaceTable cluster
  */
-public class CassandraProvider {
-    public Session createSession(Parameters connectionParameters, Terminal terminal) throws Exception {
+public final class CassandraProvider {
+    private CassandraProvider() {
+    }
+
+    public static Session createSession(final Parameters connectionParameters, final Terminal terminal) throws Exception {
 
         final InetAddress cassandraHost = InetAddress.getByName(connectionParameters.getHost());
 
@@ -53,15 +56,15 @@ public class CassandraProvider {
     }
 
     /**
-     * Sets up SSL connection to KeyspaceTable
+     * Sets up SSL connection to Cassandra
      *
      * @param parameters Command line parameters
      * @return {@link SSLContext}
      */
-    private SSLContext createSslContext(Parameters parameters) throws Exception {
+    private static SSLContext createSslContext(final Parameters parameters) throws Exception {
         // load keystore
-        final KeyStore keyStore = KeyStore.getInstance("JKS");
-        try (InputStream inputStream = new FileInputStream(parameters.getKeystore())) {
+        final KeyStore keyStore = KeyStore.getInstance("PKCS#12");
+        try (final InputStream inputStream = new FileInputStream(parameters.getKeystore())) {
             keyStore.load(inputStream, parameters.getKeystorePassword().toCharArray());
         }
         final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
@@ -79,16 +82,16 @@ public class CassandraProvider {
         return sslContext;
     }
 
-    private TrustManager[] getAllTrustingManager() {
+    private static TrustManager[] getAllTrustingManager() {
         return new TrustManager[]{
                 new X509TrustManager() {
 
                     @Override
-                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                    public void checkClientTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
                     }
 
                     @Override
-                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                    public void checkServerTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
                     }
 
                     @Override

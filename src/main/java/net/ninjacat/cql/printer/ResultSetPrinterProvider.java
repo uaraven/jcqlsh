@@ -5,6 +5,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import net.ninjacat.cql.ShellContext;
 
+/**
+ * Returns new ResultSetPrinter based on requested type
+ */
 public class ResultSetPrinterProvider {
 
     private final LoadingCache<ResultSetPrinterType, ResultSetPrinter> printerCache;
@@ -21,6 +24,8 @@ public class ResultSetPrinterProvider {
                                 return new NiceResultSetPrinter(context);
                             case COMPACT:
                                 return new CompactResultSetPrinter(context);
+                            case CSV:
+                                return new CsvResultSetPrinter(context);
                             case FLAT:
                             default:
                                 return new FlatResultSetPrinter(context);

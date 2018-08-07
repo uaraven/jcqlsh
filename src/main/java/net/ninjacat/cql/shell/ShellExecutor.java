@@ -20,6 +20,7 @@ public class ShellExecutor {
             .put("describe", DESCRIBE)
             .put("show", new ShowCommand())
             .put("screen", new ScreenCommand())
+            .put("clear", new ClearCommand())
             .build();
 
 

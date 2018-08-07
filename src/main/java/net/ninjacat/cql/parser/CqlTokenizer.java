@@ -12,7 +12,7 @@ import static net.ninjacat.cql.utils.Keywords.readResource;
  * <p>
  * Does not understand semantics
  */
-public class CqlTokenizer {
+public final class CqlTokenizer {
     private static final String DELIM = " \t\"'\n\r;,()[]<>=?`";
     private static final Set<String> WHITESPACE = ImmutableSet.of(" ", "\t", "\n", "\r");
     private static final Set<String> SYMBOLS = ImmutableSet.of(",", "(", ")", "[", "]", "<", ">", "=", "?", "*");
@@ -43,7 +43,7 @@ public class CqlTokenizer {
                     currentQuote = token;
                     currentDelim = token + "\n";
                 } else {
-                    int cursorInWord;
+                    final int cursorInWord;
                     if (cursorPos >= position && cursorPos <= (position + token.length())) {
                         cursorInWord = cursorPos - position;
                     } else {

@@ -2,6 +2,7 @@ package net.ninjacat.cql;
 
 import com.datastax.driver.core.Session;
 import net.ninjacat.cql.printer.ResultSetPrinterType;
+import net.ninjacat.cql.printer.ScreenSettings;
 import net.ninjacat.cql.shell.ShellException;
 import org.jline.terminal.Terminal;
 
@@ -14,16 +15,14 @@ import java.io.PrintWriter;
 public class ShellContext {
     private final Terminal terminal;
     private final Session session;
-    private ResultSetPrinterType resultSetPrinter;
-    private int paging;
+    private final ScreenSettings screenSettings;
     private boolean tracingEnabled;
 
     ShellContext(final Terminal terminal, final Session session) {
         this.terminal = terminal;
         this.session = session;
         this.tracingEnabled = false;
-        this.resultSetPrinter = ResultSetPrinterType.FLAT;
-        this.paging = "dumb".equals(terminal.getType()) ? 40 : terminal.getHeight();
+        this.screenSettings = new ScreenSettings(ResultSetPrinterType.COMPACT, terminal.getType().startsWith("dumb") ? 40 : terminal.getHeight());
     }
 
     public boolean isRunningInTerminal() {
@@ -51,19 +50,15 @@ public class ShellContext {
     }
 
     public ResultSetPrinterType getResultSetPrinter() {
-        return this.resultSetPrinter;
+        return this.screenSettings.getResultSetPrinter();
     }
 
     public void setResultSetPrinter(final ResultSetPrinterType resultSetPrinter) {
-        this.resultSetPrinter = resultSetPrinter;
+        this.screenSettings.setResultSetPrinter(resultSetPrinter);
     }
 
-    public int getPaging() {
-        return this.paging;
-    }
-
-    public void setPaging(final int paging) {
-        this.paging = paging;
+    public ScreenSettings getScreenSettings() {
+        return this.screenSettings;
     }
 
     public void waitForKeypress() {

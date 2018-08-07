@@ -1,6 +1,6 @@
 package net.ninjacat.cql.printer;
 
-import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.ColumnDefinitions;
 import com.datastax.driver.core.Row;
 import net.ninjacat.cql.ShellContext;
 import org.apache.commons.lang3.StringUtils;
@@ -10,9 +10,13 @@ import java.util.List;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
+/**
+ * ResultSet printer which dynamically calculates column widths to fit all columns into terminal width.
+ * <p>
+ * Will trim long lines so that each row can be printed on one line
+ */
 @SuppressWarnings("UnstableApiUsage")
-public class CompactResultSetPrinter extends BaseResultSetPrinter implements ScalableColumnsWidthCalculator {
-
+public class CompactResultSetPrinter extends ResultSetPrinter implements ScalableColumnsWidthCalculator {
 
     CompactResultSetPrinter(final ShellContext context) {
         super(context);
@@ -46,8 +50,8 @@ public class CompactResultSetPrinter extends BaseResultSetPrinter implements Sca
     }
 
     @Override
-    protected List<Integer> calculateColumnWidths(final ResultSet resultSet, final List<Row> rows) {
-        return columnWidths(getContext(), resultSet, rows);
+    protected List<Integer> calculateColumnWidths(final ColumnDefinitions columns, final List<Row> rows) {
+        return columnWidths(getContext(), columns, rows);
     }
 
     @Override
