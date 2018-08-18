@@ -13,6 +13,7 @@ import net.ninjacat.cql.parser.TokenType;
 import net.ninjacat.cql.shell.ShellExecutor;
 import net.ninjacat.cql.utils.Keywords;
 import net.ninjacat.cql.utils.Utils;
+import org.fusesource.jansi.AnsiConsole;
 import org.jline.reader.*;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.history.DefaultHistory;
@@ -40,8 +41,7 @@ public final class CqlShell implements Closeable, AutoCloseable {
     private CqlShell(final Parameters parameters) throws Exception {
 
         final Terminal terminal = TerminalBuilder.builder().dumb(System.console() == null).build();
-
-
+        AnsiConsole.systemInstall();
         this.history = createHistory();
 
         this.reader = LineReaderBuilder.builder()
@@ -89,6 +89,7 @@ public final class CqlShell implements Closeable, AutoCloseable {
             cqlShell.repl();
         } catch (final Exception ex) {
             System.err.println("Terminated with error: " + ex.getMessage());
+            System.exit(0);
         }
     }
 
@@ -108,6 +109,9 @@ public final class CqlShell implements Closeable, AutoCloseable {
                     line = this.reader.readLine(this.prompt);
                 } catch (final UserInterruptException ignored) {
                     continue;
+                }
+                if (line == null) {
+                    throw new EndOfFileException();
                 }
 
                 final List<Token> parsed = CqlTokenizer.parse(cmdBuilder.toString() + line);
@@ -150,7 +154,7 @@ public final class CqlShell implements Closeable, AutoCloseable {
         }
     }
 
-    private boolean isShellCommand(final String command) {
+    private static boolean isShellCommand(final String command) {
         return ShellExecutor.isShellCommand(command);
     }
 
