@@ -17,6 +17,7 @@ public class ShellContext {
     private final Terminal terminal;
     private final Session session;
     private ResultSetPrinterType resultSetPrinter;
+    private boolean pagingEnabled;
     private int paging;
     private boolean tracingEnabled;
 
@@ -61,7 +62,7 @@ public class ShellContext {
         return this.consistencyLevel;
     }
 
-    public void setConsistencyLevel(ConsistencyLevel consistencyLevel) {
+    public void setConsistencyLevel(final ConsistencyLevel consistencyLevel) {
         this.consistencyLevel = consistencyLevel;
     }
 
@@ -69,8 +70,16 @@ public class ShellContext {
         return this.serialConsistencyLevel;
     }
 
-    public void setSerialConsistencyLevel(ConsistencyLevel serialConsistencyLevel) {
+    public void setSerialConsistencyLevel(final ConsistencyLevel serialConsistencyLevel) {
         this.serialConsistencyLevel = serialConsistencyLevel;
+    }
+
+    public boolean isPagingEnabled() {
+        return this.pagingEnabled;
+    }
+
+    public void setPagingEnabled(final boolean pagingEnabled) {
+        this.pagingEnabled = pagingEnabled;
     }
 
     public ResultSetPrinterType getResultSetPrinter() {

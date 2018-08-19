@@ -13,7 +13,7 @@ import net.ninjacat.cql.parser.TokenType;
 import net.ninjacat.cql.shell.ShellExecutor;
 import net.ninjacat.cql.utils.Keywords;
 import net.ninjacat.cql.utils.Utils;
-import org.fusesource.jansi.AnsiConsole;
+import net.ninjacat.smooth.utils.Try;
 import org.jline.reader.*;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.history.DefaultHistory;
@@ -40,8 +40,9 @@ public final class CqlShell implements Closeable, AutoCloseable {
 
     private CqlShell(final Parameters parameters) throws Exception {
 
-        final Terminal terminal = TerminalBuilder.builder().dumb(System.console() == null).build();
-        AnsiConsole.systemInstall();
+        final Terminal terminal = Try.execute(() -> buildDefaultTerminal(parameters))
+                .recover(CqlShell::buildFallbackTerminal)
+                .getValue();
         this.history = createHistory();
 
         this.reader = LineReaderBuilder.builder()
@@ -59,6 +60,37 @@ public final class CqlShell implements Closeable, AutoCloseable {
 
         this.cqlExecutor = new CqlExecutor(this.context);
         this.shellExecutor = new ShellExecutor(this.context);
+    }
+
+    /**
+     * Default terminal that should work fine on Linux and MacOS
+     *
+     * @param parameters
+     * @return
+     * @throws IOException
+     */
+    private static Terminal buildDefaultTerminal(final Parameters parameters) throws IOException {
+        return TerminalBuilder.builder()
+                .dumb(isDumb(parameters))
+                .build();
+    }
+
+    /**
+     * Default terminal fails to create on Windows in CDM.EXE or Powershell (but works fine in cygwin or msys). \
+     * This method will attempt to create dumb non-system terminal that works in CMD and Powershell
+     *
+     * @return Terminal
+     * @throws IOException
+     */
+    private static Terminal buildFallbackTerminal() throws IOException {
+        return TerminalBuilder.builder()
+                .dumb(true)
+                .system(false)
+                .build();
+    }
+
+    private static boolean isDumb(final Parameters parameters) {
+        return System.console() == null || parameters.isNoColor();
     }
 
     private static History createHistory() throws IOException {
@@ -159,7 +191,7 @@ public final class CqlShell implements Closeable, AutoCloseable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         Utils.closeQuietly(this.context.getTerminal());
     }
 }

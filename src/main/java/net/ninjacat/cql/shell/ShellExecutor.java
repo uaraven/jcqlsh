@@ -24,6 +24,7 @@ public class ShellExecutor {
             .put("serial", new SerialConsistencyCommand())
             .put("tracing", new TracingCommand())
             .put("clear", new ClearCommand())
+            .put("paging", new PagingCommand())
             .build();
 
 
