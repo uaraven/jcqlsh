@@ -43,7 +43,9 @@ public class CqlExecutor {
 
     public void execute(final String cqlQuery, final boolean tracing) {
         try {
-            final PreparedStatement preparedStatement = this.context.getSession().prepare(cqlQuery);
+            final PreparedStatement preparedStatement = this.context.getSession().prepare(cqlQuery)
+                    .setConsistencyLevel(this.context.getConsistencyLevel())
+                    .setSerialConsistencyLevel(this.context.getSerialConsistencyLevel());
             if (tracing) {
                 preparedStatement.enableTracing();
             }

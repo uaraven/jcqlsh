@@ -20,7 +20,11 @@ public class ShellExecutor {
             .put("describe", DESCRIBE)
             .put("show", new ShowCommand())
             .put("screen", new ScreenCommand())
+            .put("consistency", new ConsistencyCommand())
+            .put("serial", new SerialConsistencyCommand())
+            .put("tracing", new TracingCommand())
             .put("clear", new ClearCommand())
+            .put("paging", new PagingCommand())
             .build();
 
 

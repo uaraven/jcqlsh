@@ -1,8 +1,8 @@
 package net.ninjacat.cql;
 
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import net.ninjacat.cql.printer.ResultSetPrinterType;
-import net.ninjacat.cql.printer.ScreenSettings;
 import net.ninjacat.cql.shell.ShellException;
 import org.jline.terminal.Terminal;
 
@@ -13,16 +13,25 @@ import java.io.PrintWriter;
  * Context of the shell. Contains terminal, KeyspaceTable session and gives access to {@link PrintWriter}
  */
 public class ShellContext {
+    private static final int DEFAULT_PAGE_SIZE = 25;
     private final Terminal terminal;
     private final Session session;
-    private final ScreenSettings screenSettings;
+    private ResultSetPrinterType resultSetPrinter;
+    private boolean pagingEnabled;
+    private int paging;
     private boolean tracingEnabled;
+
+    private ConsistencyLevel consistencyLevel;
+    private ConsistencyLevel serialConsistencyLevel;
 
     ShellContext(final Terminal terminal, final Session session) {
         this.terminal = terminal;
         this.session = session;
+        this.consistencyLevel = ConsistencyLevel.ONE;
+        this.serialConsistencyLevel = ConsistencyLevel.SERIAL;
         this.tracingEnabled = false;
-        this.screenSettings = new ScreenSettings(ResultSetPrinterType.COMPACT, terminal.getType().startsWith("dumb") ? 40 : terminal.getHeight());
+        this.resultSetPrinter = ResultSetPrinterType.FLAT;
+        this.paging = "dumb".equals(terminal.getType()) ? DEFAULT_PAGE_SIZE : terminal.getHeight();
     }
 
     public boolean isRunningInTerminal() {
@@ -49,16 +58,44 @@ public class ShellContext {
         this.tracingEnabled = tracingEnabled;
     }
 
+    public ConsistencyLevel getConsistencyLevel() {
+        return this.consistencyLevel;
+    }
+
+    public void setConsistencyLevel(final ConsistencyLevel consistencyLevel) {
+        this.consistencyLevel = consistencyLevel;
+    }
+
+    public ConsistencyLevel getSerialConsistencyLevel() {
+        return this.serialConsistencyLevel;
+    }
+
+    public void setSerialConsistencyLevel(final ConsistencyLevel serialConsistencyLevel) {
+        this.serialConsistencyLevel = serialConsistencyLevel;
+    }
+
+    public boolean isPagingEnabled() {
+        return this.pagingEnabled;
+    }
+
+    public void setPagingEnabled(final boolean pagingEnabled) {
+        this.pagingEnabled = pagingEnabled;
+    }
+
     public ResultSetPrinterType getResultSetPrinter() {
-        return this.screenSettings.getResultSetPrinter();
+        return this.resultSetPrinter;
     }
 
     public void setResultSetPrinter(final ResultSetPrinterType resultSetPrinter) {
-        this.screenSettings.setResultSetPrinter(resultSetPrinter);
+        this.resultSetPrinter = resultSetPrinter;
     }
 
-    public ScreenSettings getScreenSettings() {
-        return this.screenSettings;
+    public int getPaging() {
+        return this.paging;
+    }
+
+    public void setPaging(final int paging) {
+        this.paging = paging;
     }
 
     public void waitForKeypress() {
