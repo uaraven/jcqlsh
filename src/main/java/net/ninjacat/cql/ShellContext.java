@@ -3,6 +3,7 @@ package net.ninjacat.cql;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
 import net.ninjacat.cql.printer.ResultSetPrinterType;
+import net.ninjacat.cql.printer.ScreenSettings;
 import net.ninjacat.cql.shell.ShellException;
 import org.jline.terminal.Terminal;
 
@@ -13,12 +14,9 @@ import java.io.PrintWriter;
  * Context of the shell. Contains terminal, KeyspaceTable session and gives access to {@link PrintWriter}
  */
 public class ShellContext {
-    private static final int DEFAULT_PAGE_SIZE = 25;
     private final Terminal terminal;
     private final Session session;
-    private ResultSetPrinterType resultSetPrinter;
-    private boolean pagingEnabled;
-    private int paging;
+    private final ScreenSettings screenSettings;
     private boolean tracingEnabled;
 
     private ConsistencyLevel consistencyLevel;
@@ -30,8 +28,7 @@ public class ShellContext {
         this.consistencyLevel = ConsistencyLevel.ONE;
         this.serialConsistencyLevel = ConsistencyLevel.SERIAL;
         this.tracingEnabled = false;
-        this.resultSetPrinter = ResultSetPrinterType.FLAT;
-        this.paging = "dumb".equals(terminal.getType()) ? DEFAULT_PAGE_SIZE : terminal.getHeight();
+        this.screenSettings = new ScreenSettings(ResultSetPrinterType.COMPACT, terminal.getType().startsWith("dumb") ? 40 : terminal.getHeight());
     }
 
     public boolean isRunningInTerminal() {
@@ -75,27 +72,23 @@ public class ShellContext {
     }
 
     public boolean isPagingEnabled() {
-        return this.pagingEnabled;
+        return this.screenSettings.isPagingEnabled();
     }
 
     public void setPagingEnabled(final boolean pagingEnabled) {
-        this.pagingEnabled = pagingEnabled;
+        this.screenSettings.setPagingEnabled(pagingEnabled);
     }
 
     public ResultSetPrinterType getResultSetPrinter() {
-        return this.resultSetPrinter;
+        return this.screenSettings.getResultSetPrinter();
     }
 
     public void setResultSetPrinter(final ResultSetPrinterType resultSetPrinter) {
-        this.resultSetPrinter = resultSetPrinter;
+        this.screenSettings.setResultSetPrinter(resultSetPrinter);
     }
 
-    public int getPaging() {
-        return this.paging;
-    }
-
-    public void setPaging(final int paging) {
-        this.paging = paging;
+    public ScreenSettings getScreenSettings() {
+        return this.screenSettings;
     }
 
     public void waitForKeypress() {

@@ -15,7 +15,7 @@ public class ClearCommand implements ShellCommand {
         if (context.isRunningInTerminal()) {
             ansi().eraseScreen(Ansi.Erase.ALL);
         } else {
-            IntStream.range(0, context.getPaging() * 2).forEach(i -> context.writer().println());
+            IntStream.range(0, context.getScreenSettings().getPaging() * 2).forEach(i -> context.writer().println());
         }
     }
 }

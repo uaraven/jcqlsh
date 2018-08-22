@@ -31,8 +31,8 @@ public class PagingCommand implements ShellCommand {
                         break;
                     default:
                         try {
-                            context.setPaging(Integer.parseInt(commands.get(1).getToken()));
-                            context.writer().println(ansi().a("Page size: ").bold().a(context.getPaging()).reset());
+                            context.getScreenSettings().setPaging(Integer.parseInt(commands.get(1).getToken()));
+                            context.writer().println(ansi().a("Page size: ").bold().a(context.getScreenSettings().getPaging()).reset());
                         } catch (final NumberFormatException ex) {
                             throw new ShellException("Invalid parameter. Expected ON|OFF|<PAGE SIZE>");
                         }
@@ -45,7 +45,7 @@ public class PagingCommand implements ShellCommand {
 
     private static void showPagingEnabled(final ShellContext context) {
         context.writer().println(ansi().a("Query paging is currently ").bold().a("enabled").boldOff()
-                .a(".\n Page size: ").bold().a(context.getPaging()).reset());
+                .a(".\n Page size: ").bold().a(context.getScreenSettings().getPaging()).reset());
     }
 
     private static void showPagingDisabled(final ShellContext context) {

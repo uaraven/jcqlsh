@@ -106,7 +106,6 @@ public final class CqlShell implements Closeable, AutoCloseable {
     }
 
     public static void main(final String[] args) {
-
         final Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         root.setLevel(Level.OFF);
 

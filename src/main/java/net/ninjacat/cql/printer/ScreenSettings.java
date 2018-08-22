@@ -6,6 +6,7 @@ package net.ninjacat.cql.printer;
 public class ScreenSettings {
     private ResultSetPrinterType resultSetPrinter;
     private int paging;
+    private boolean pagingEnabled;
 
     public ScreenSettings(final ResultSetPrinterType resultSetPrinter, final int paging) {
         this.resultSetPrinter = resultSetPrinter;
@@ -26,5 +27,13 @@ public class ScreenSettings {
 
     public void setPaging(final int paging) {
         this.paging = paging;
+    }
+
+    public void setPagingEnabled(final boolean pagingEnabled) {
+        this.pagingEnabled = pagingEnabled;
+    }
+
+    public boolean isPagingEnabled() {
+        return this.pagingEnabled;
     }
 }

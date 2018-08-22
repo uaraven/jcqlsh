@@ -68,12 +68,12 @@ public class ScreenCommand implements ShellCommand {
 
     private void paging(final ShellContext context, final List<Token> tokens) {
         if (tokens.isEmpty()) {
-            context.writer().println(ansi().a("Paging size: ").fgBlue().a(context.getPaging()).reset());
+            context.writer().println(ansi().a("Paging size: ").fgBlue().a(context.getScreenSettings().getPaging()).reset());
             return;
         }
         try {
-            context.setPaging(Integer.parseInt(tokens.get(0).getToken()));
-            context.writer().println(ansi().a("Set paging size to ").fgBlue().a(context.getPaging()).reset());
+            context.getScreenSettings().setPaging(Integer.parseInt(tokens.get(0).getToken()));
+            context.writer().println(ansi().a("Set paging size to ").fgBlue().a(context.getScreenSettings().getPaging()).reset());
         } catch (final NumberFormatException ex) {
             context.writer().println(formatError("Invalid page size: ", tokens.get(0).getToken()));
         }
