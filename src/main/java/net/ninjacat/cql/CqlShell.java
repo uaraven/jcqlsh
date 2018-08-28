@@ -111,14 +111,24 @@ public final class CqlShell implements Closeable, AutoCloseable {
 
         final Parameters connectionParameters = new Parameters();
         final JCommander jc = JCommander.newBuilder()
+                .programName("java -jar jcqlsh.jar")
                 .addObject(connectionParameters)
                 .build();
         jc.parse(args);
 
+        if (connectionParameters.isShowHelp()) {
+            jc.usage();
+            return;
+        }
+
         try (final CqlShell cqlShell = new CqlShell(connectionParameters)) {
             cqlShell.repl();
         } catch (final Exception ex) {
-            System.err.println("Terminated with error: " + ex.getMessage());
+            if (connectionParameters.isDebug()) {
+                ex.printStackTrace();
+            } else {
+                System.err.println("Terminated with error: " + ex.getMessage());
+            }
             System.exit(0);
         }
     }

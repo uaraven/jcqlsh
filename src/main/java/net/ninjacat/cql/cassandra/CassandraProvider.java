@@ -4,18 +4,11 @@ import com.datastax.driver.core.*;
 import net.ninjacat.cql.Parameters;
 import org.jline.terminal.Terminal;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.InetAddress;
-import java.security.KeyStore;
-import java.security.Provider;
-import java.security.SecureRandom;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -28,13 +21,11 @@ public final class CassandraProvider {
 
     public static Session createSession(final Parameters connectionParameters, final Terminal terminal) throws Exception {
 
-        final InetAddress cassandraHost = InetAddress.getByName(connectionParameters.getHost());
-
         final PrintStream printer = new PrintStream(terminal.output());
-        printer.println("Connecting to " + cassandraHost.getHostAddress());
+        printer.println("Connecting to " + connectionParameters.getHost());
 
         final Cluster.Builder builder = Cluster.builder()
-                .addContactPoints(cassandraHost)
+                .addContactPoints(connectionParameters.getHost())
                 .withProtocolVersion(ProtocolVersion.V4)
                 .withoutJMXReporting()
                 .withQueryOptions(
@@ -63,7 +54,12 @@ public final class CassandraProvider {
      */
     private static SSLContext createSslContext(final Parameters parameters) throws Exception {
         // load keystore
-        final KeyStore keyStore = KeyStore.getInstance("PKCS#12");
+        final KeyStore keyStore;
+        if (parameters.getKeystore().getName().endsWith("jks")) {
+            keyStore = KeyStore.getInstance("JKS");
+        } else {
+            keyStore = KeyStore.getInstance("PKCS12");
+        }
         try (final InputStream inputStream = new FileInputStream(parameters.getKeystore())) {
             keyStore.load(inputStream, parameters.getKeystorePassword().toCharArray());
         }
@@ -71,7 +67,7 @@ public final class CassandraProvider {
         keyManagerFactory.init(keyStore, parameters.getKeystorePassword().toCharArray());
 
         // setup trust manager
-        final TrustManager[] trustManagers = parameters.isUsafeSsl() ? getAllTrustingManager() : null;
+        final TrustManager[] trustManagers = parameters.isUsafeSsl() ? getAllTrustingManager() : createTrustManager(keyStore);
 
         // initialize ssl context
         final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
@@ -80,6 +76,12 @@ public final class CassandraProvider {
 
         sslContext.init(keyManagerFactory.getKeyManagers(), trustManagers, secureRandom);
         return sslContext;
+    }
+
+    private static TrustManager[] createTrustManager(final KeyStore keyStore) throws NoSuchAlgorithmException, KeyStoreException {
+        final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
+        trustManagerFactory.init(keyStore);
+        return trustManagerFactory.getTrustManagers();
     }
 
     private static TrustManager[] getAllTrustingManager() {
