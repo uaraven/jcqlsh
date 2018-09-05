@@ -35,7 +35,7 @@ public final class CassandraProvider {
                 );
 
         if (connectionParameters.isUseSsl()) {
-            builder.withSSL(JdkSSLOptions.builder()
+            builder.withSSL(RemoteEndpointAwareJdkSSLOptions.builder()
                     .withSSLContext(createSslContext(connectionParameters))
                     .build());
         }

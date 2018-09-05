@@ -80,10 +80,12 @@ public abstract class ResultSetPrinter {
                 final List<Integer> columnWidths = calculateColumnWidths(resultSet.getColumnDefinitions(), results);
                 printHeader(resultSet, columnWidths);
                 results.forEach(row -> printRow(row, columnWidths));
-                if (resultPages.hasNext()) {
-                    this.context.writer().print("-- MORE --");
+                if (this.context.isRunningInTerminal() && resultPages.hasNext()) {
+                    this.context.writer().print("-- ENTER for MORE --");
                     this.context.writer().flush();
-                    this.context.waitForKeypress();
+                    if (!this.context.waitForKeypress()) {
+                        break;
+                    }
                 }
                 this.context.writer().println();
             }

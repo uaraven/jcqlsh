@@ -5,9 +5,11 @@ import com.datastax.driver.core.Session;
 import net.ninjacat.cql.printer.ResultSetPrinterType;
 import net.ninjacat.cql.printer.ScreenSettings;
 import net.ninjacat.cql.shell.ShellException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -91,16 +93,17 @@ public class ShellContext {
         return this.screenSettings;
     }
 
-    public void waitForKeypress() {
+    public boolean waitForKeypress() {
+        final LineReader reader = LineReaderBuilder.builder()
+                .option(LineReader.Option.CASE_INSENSITIVE, true)
+                .terminal(getTerminal())
+                .build();
         try {
-            int read;
-            do {
-                read = this.getTerminal().reader().read(Long.MAX_VALUE);
-                if (read == -1) {
-                    throw new ShellException("Terminated");
-                }
-            } while (read < 0);
-        } catch (final IOException e) {
+            reader.readLine((char) 0);
+            return true;
+        } catch (final UserInterruptException ex) {
+            return false;
+        } catch (final Exception e) {
             throw new ShellException("", e);
         }
     }
