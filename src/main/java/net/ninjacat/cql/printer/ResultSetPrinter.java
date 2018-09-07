@@ -20,7 +20,7 @@ import static org.fusesource.jansi.Ansi.ansi;
  * <p>
  * Incapsulates layout strategy to print rows in {@link ResultSet} on screen.
  */
-public abstract class ResultSetPrinter {
+public abstract class ResultSetPrinter implements CqlResultPrinter {
 
     private final ShellContext context;
 
@@ -42,16 +42,16 @@ public abstract class ResultSetPrinter {
                 .collect(Collectors.toList());
 
         final Ansi ln = ansi();
-        final Ansi ln2 = ansi().fgYellow();
+        final Ansi ln2 = separator(ansi());
         for (int index = 0; index < columnsAndWidths.size(); index++) {
             final ColumnAndWidth cw = columnsAndWidths.get(index);
             if (index > 0) {
-                ln.fgYellow().a(" | ");
+                separator(ln).a(" | ");
                 ln2.a("+");
             } else {
                 ln.a(" ");
             }
-            ln.fgBrightBlue().a(StringUtils.center(cw.text, cw.width));
+            header(ln).a(StringUtils.center(cw.text, cw.width));
             ln2.a(StringUtils.center("", cw.width + (index == columnsAndWidths.size() - 1 ? 1 : 2), "-"));
         }
         ln.reset();
@@ -70,6 +70,7 @@ public abstract class ResultSetPrinter {
      *
      * @param resultSet {@link ResultSet} containing data.
      */
+    @Override
     public void printResultSet(final ResultSet resultSet) {
         if (!resultSet.getColumnDefinitions().asList().isEmpty()) {
 
@@ -94,17 +95,6 @@ public abstract class ResultSetPrinter {
 
     public ShellContext getContext() {
         return this.context;
-    }
-
-    /**
-     * Escapes special characters in the text string
-     *
-     * @param text String to escape characters in
-     * @return String with escaped characters
-     */
-    @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
-    static String escapeText(final String text) {
-        return text.replaceAll("\n", "\\n").replaceAll("\r", "\\r").replaceAll("\t", "\\t");
     }
 
     /**

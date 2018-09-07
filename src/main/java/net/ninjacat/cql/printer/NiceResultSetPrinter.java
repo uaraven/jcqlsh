@@ -42,7 +42,7 @@ public class NiceResultSetPrinter extends ResultSetPrinter implements ScalableCo
         cells.print(getContext().writer());
     }
 
-    private static Cells buildRowCells(final Row row, final List<Integer> columnWidths) {
+    private Cells buildRowCells(final Row row, final List<Integer> columnWidths) {
         return new Cells(IntStream.range(0, columnWidths.size())
                 .mapToObj(index -> new Cell(escapeText(Objects.toString(row.getObject(index), "<null>")), columnWidths.get(index)))
                 .collect(Collectors.toList()));
@@ -58,7 +58,7 @@ public class NiceResultSetPrinter extends ResultSetPrinter implements ScalableCo
         return escapeText(safeGetValue(row, idx));
     }
 
-    private static final class Cells {
+    private final class Cells {
         final List<Cell> cells;
         private final int totalLines;
         int currentLine;
@@ -89,7 +89,7 @@ public class NiceResultSetPrinter extends ResultSetPrinter implements ScalableCo
 
                 for (int index = 0; index < line.size(); index++) {
                     if (index > 0) {
-                        ln.fgYellow().a(" | ");
+                        separator(ln).a(" | ");
                     } else {
                         ln.a(" ");
                     }

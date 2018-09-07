@@ -15,16 +15,21 @@ public class ShellExecutor {
     private static final DescribeCommand DESCRIBE = new DescribeCommand();
 
     private static final Map<String, ShellCommand> COMMANDS = ImmutableMap.<String, ShellCommand>builder()
-            .put("exit", ShellExecutor::exit)
-            .put("desc", DESCRIBE)
-            .put("describe", DESCRIBE)
-            .put("show", new ShowCommand())
-            .put("screen", new ScreenCommand())
-            .put("consistency", new ConsistencyCommand())
-            .put("serial", new SerialConsistencyCommand())
-            .put("tracing", new TracingCommand())
+            // capture
             .put("clear", new ClearCommand())
+            .put("consistency", new ConsistencyCommand())
+            // copy
+            .put("describe", DESCRIBE)
+            .put("desc", DESCRIBE)
+            .put("exit", ShellExecutor::exit)
+            // expand
+            // login
             .put("paging", new PagingCommand())
+            .put("serial", new SerialConsistencyCommand())
+            .put("screen", new ScreenCommand())
+            .put("show", new ShowCommand())
+            .put("source", new SourceCommand())
+            .put("tracing", new TracingCommand())
             .build();
 
 

@@ -38,7 +38,7 @@ public class FlatResultSetPrinter extends ResultSetPrinter {
         final Ansi ln = ansi();
         for (int index = 0; index < row.getColumnDefinitions().size(); index++) {
             if (index > 0) {
-                ln.fgYellow().a(" | ");
+                separator(ln).a(" | ");
             } else {
                 ln.a(" ");
             }

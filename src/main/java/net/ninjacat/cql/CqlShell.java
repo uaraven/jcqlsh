@@ -7,6 +7,7 @@ import com.datastax.driver.core.Session;
 import com.google.common.collect.Streams;
 import net.ninjacat.cql.cassandra.CassandraProvider;
 import net.ninjacat.cql.cassandra.CqlExecutor;
+import net.ninjacat.cql.cassandra.CqlFileExecutor;
 import net.ninjacat.cql.parser.CqlTokenizer;
 import net.ninjacat.cql.parser.Token;
 import net.ninjacat.cql.parser.TokenType;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -122,7 +124,11 @@ public final class CqlShell implements Closeable, AutoCloseable {
         }
 
         try (final CqlShell cqlShell = new CqlShell(connectionParameters)) {
-            cqlShell.repl();
+            if (connectionParameters.getSourceFile().isPresent()) {
+                cqlShell.executeScript(connectionParameters.getSourceFile().get());
+            } else {
+                cqlShell.repl();
+            }
         } catch (final Exception ex) {
             if (connectionParameters.isDebug()) {
                 ex.printStackTrace();
@@ -131,6 +137,11 @@ public final class CqlShell implements Closeable, AutoCloseable {
             }
             System.exit(0);
         }
+    }
+
+    private void executeScript(final String scriptFile) {
+        final CqlFileExecutor executor = new CqlFileExecutor(this.context);
+        executor.execute(Paths.get(scriptFile));
     }
 
     private void setPrompt(final String prompt) {
@@ -148,6 +159,8 @@ public final class CqlShell implements Closeable, AutoCloseable {
                 try {
                     line = this.reader.readLine(this.prompt);
                 } catch (final UserInterruptException ignored) {
+                    this.prompt = mainPrompt();
+                    cmdBuilder.setLength(0);
                     continue;
                 }
                 if (line == null) {

@@ -4,7 +4,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import net.ninjacat.cql.ShellContext;
 import net.ninjacat.cql.parser.Token;
-import net.ninjacat.cql.printer.ResultSetPrinter;
+import net.ninjacat.cql.printer.CqlResultPrinter;
 import net.ninjacat.cql.printer.ResultSetPrinterProvider;
 import net.ninjacat.cql.utils.Exceptions;
 
@@ -56,7 +56,7 @@ public class CqlExecutor {
         }
     }
 
-    private ResultSetPrinter getResultSetPrinter() {
+    private CqlResultPrinter getResultSetPrinter() {
         return this.printerProvider.get(this.context.getResultSetPrinter());
     }
 

@@ -3,6 +3,7 @@ package net.ninjacat.cql;
 import com.beust.jcommander.Parameter;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * Command line parameters
@@ -31,6 +32,9 @@ public class Parameters {
 
     @Parameter(names = "--debug", hidden = true)
     private boolean debug = false;
+
+    @Parameter(names = "--file", description = "Executes CQL script without starting a shell session")
+    private String sourceFile = null;
 
     public String getHost() {
         return this.host;
@@ -62,5 +66,9 @@ public class Parameters {
 
     public boolean isDebug() {
         return this.debug;
+    }
+
+    public Optional<String> getSourceFile() {
+        return Optional.ofNullable(this.sourceFile);
     }
 }
