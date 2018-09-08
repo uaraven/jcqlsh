@@ -60,11 +60,6 @@ public abstract class ResultSetPrinter implements CqlResultPrinter {
         getContext().writer().println(ln2);
     }
 
-    static String safeGetValue(final Row row, final int index) {
-        final Object object = row.getObject(index);
-        return object == null ? "<null>" : object.toString();
-    }
-
     /**
      * Prints result set with paging.
      *

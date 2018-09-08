@@ -49,13 +49,18 @@ public class ExpandedResultSetPrinter implements CqlResultPrinter {
     }
 
     private void printRow(final Row row) {
+        final ResultSetColorizer color = this.context.getResultColorizer();
         this.context.writer().println(String.format("@ Row %d", this.rowCounter.incrementAndGet()));
+        this.context.writer().println(color.table(ansi()).a(StringUtils.center("", this.context.getTerminal().getWidth(), "-")).reset());
         final int columnWidth = row.getColumnDefinitions().asList().stream().mapToInt(it -> it.getName().length()).max().orElse(20);
+        int index = 0;
         for (final ColumnDefinitions.Definition column : row.getColumnDefinitions().asList()) {
             final Ansi ln = ansi().a(" ");
-            header(ln).a(StringUtils.leftPad(column.getName(), columnWidth)).reset();
-            separator(ln).a(" |  ");
-
+            color.header(ln, column).a(StringUtils.leftPad(column.getName(), columnWidth)).reset();
+            color.table(ln).a(" | ");
+            final String text = escapeText(safeGetValue(row, index));
+            color.value(ln, column).a(text);
+            index += 1;
         }
     }
 }

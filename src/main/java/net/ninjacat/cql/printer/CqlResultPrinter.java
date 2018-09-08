@@ -1,6 +1,7 @@
 package net.ninjacat.cql.printer;
 
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import org.fusesource.jansi.Ansi;
 
 /**
@@ -19,6 +20,12 @@ public interface CqlResultPrinter {
     default String escapeText(final String text) {
         return text.replaceAll("\n", "\\n").replaceAll("\r", "\\r").replaceAll("\t", "\\t");
     }
+
+    default String safeGetValue(final Row row, final int index) {
+        final Object object = row.getObject(index);
+        return object == null ? "<null>" : object.toString();
+    }
+
 
     default Ansi separator(final Ansi ansi) {
         return ansi.fgYellow();

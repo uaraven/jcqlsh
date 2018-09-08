@@ -2,6 +2,7 @@ package net.ninjacat.cql;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.Session;
+import net.ninjacat.cql.printer.ResultSetColorizer;
 import net.ninjacat.cql.printer.ResultSetPrinterType;
 import net.ninjacat.cql.printer.ScreenSettings;
 import net.ninjacat.cql.shell.ShellException;
@@ -19,6 +20,7 @@ public class ShellContext {
     private final Terminal terminal;
     private final Session session;
     private final ScreenSettings screenSettings;
+    private final ResultSetColorizer resultColorizer;
     private boolean tracingEnabled;
 
     private ConsistencyLevel consistencyLevel;
@@ -30,6 +32,7 @@ public class ShellContext {
         this.consistencyLevel = ConsistencyLevel.ONE;
         this.serialConsistencyLevel = ConsistencyLevel.SERIAL;
         this.tracingEnabled = false;
+        this.resultColorizer = new ResultSetColorizer();
         this.screenSettings = new ScreenSettings(ResultSetPrinterType.COMPACT, terminal.getType().startsWith("dumb") ? 40 : terminal.getHeight());
     }
 
@@ -91,6 +94,10 @@ public class ShellContext {
 
     public ScreenSettings getScreenSettings() {
         return this.screenSettings;
+    }
+
+    public ResultSetColorizer getResultColorizer() {
+        return this.resultColorizer;
     }
 
     public boolean waitForKeypress() {
