@@ -14,13 +14,14 @@ public class ResultSetColorizer {
             case VARINT:
             case TINYINT:
             case DECIMAL:
-                return ansi.fgGreen();
+                return ansi.fgBrightCyan();
             case UUID:
                 return ansi.fgBrightGreen();
+            case BLOB:
+                return ansi.fgBright(Ansi.Color.YELLOW);
             case TEXT:
             case ASCII:
             case VARCHAR:
-                return ansi.fgBrightCyan();
             default:
                 return ansi.fg(Ansi.Color.WHITE);
         }

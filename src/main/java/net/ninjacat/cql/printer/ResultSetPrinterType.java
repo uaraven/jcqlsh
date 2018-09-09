@@ -19,5 +19,10 @@ public enum ResultSetPrinterType {
     /**
      * Comma separated values
      */
-    CSV
+    CSV,
+
+    /**
+     * Each row is printed vertically with each column on its own line
+     */
+    EXPANDED;
 }
