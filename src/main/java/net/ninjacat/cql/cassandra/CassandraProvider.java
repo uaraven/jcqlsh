@@ -25,7 +25,7 @@ public final class CassandraProvider {
         printer.println("Connecting to " + connectionParameters.getHost());
 
         final Cluster.Builder builder = Cluster.builder()
-                .addContactPoints(connectionParameters.getHost())
+                .addContactPointsWithPorts(connectionParameters.getHostAddress())
                 .withProtocolVersion(ProtocolVersion.V4)
                 .withoutJMXReporting()
                 .withQueryOptions(

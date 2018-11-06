@@ -12,7 +12,7 @@ import static org.fusesource.jansi.Ansi.ansi;
 public class ClearCommand implements ShellCommand {
     @Override
     public void execute(final ShellContext context, final List<Token> tokens) {
-        if (context.isRunningInTerminal()) {
+        if (ShellContext.isRunningInTerminal()) {
             ansi().eraseScreen(Ansi.Erase.ALL);
         } else {
             IntStream.range(0, context.getScreenSettings().getPaging() * 2).forEach(i -> context.writer().println());

@@ -1,17 +1,22 @@
 group 'net.ninjacat'
-version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-apply plugin: 'com.github.johnrengelman.shadow'
+version '0.0.2-SNAPSHOT'
 
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.19"
     }
 }
+
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'net.ltgt.apt'
 
 sourceCompatibility = 1.8
 
@@ -26,9 +31,11 @@ jar {
     }
 }
 
-final def guavaVersion = '22.0'
-final def jlineVersion = '3.7.0'
-final def cassandraDriverVersion = '3.3.2'
+ext.guavaVersion = '22.0'
+ext.jlineVersion = '3.7.0'
+ext.cassandraDriverVersion = '3.6.0'
+ext.lombokVersion = '1.18.4'
+
 
 dependencies {
     compile 'org.apache.commons:commons-lang3:3.7'
@@ -38,12 +45,13 @@ dependencies {
     compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.17.1'
     compile group: 'com.google.guava', name: 'guava', version: guavaVersion
     compile group: 'com.datastax.cassandra', name: 'cassandra-driver-core', version: cassandraDriverVersion
-    compile group: 'com.datastax.cassandra', name: 'cassandra-driver-mapping', version: cassandraDriverVersion
-    compile group: 'com.datastax.cassandra', name: 'cassandra-driver-extras', version: cassandraDriverVersion
     compile group: 'ch.qos.logback', name: 'logback-core', version: '1.1.5'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.5'
     compile group: 'com.beust', name: 'jcommander', version: '1.72'
     compile group: 'net.ninjacat', name: 'smooth', version: '0.2.3'
+    compileOnly group: 'org.projectlombok', name:'lombok', version: lombokVersion
+
+    apt "org.projectlombok:lombok:$lombokVersion"
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile 'org.hamcrest:hamcrest-all:1.3'
 }

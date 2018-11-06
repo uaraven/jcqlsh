@@ -17,11 +17,11 @@ public class CqlHighlighter implements Highlighter {
 
     private static final Map<TokenType, AttributedStyle> HIGHLIGHTER =
             ImmutableMap.<TokenType, AttributedStyle>builder()
-                    .put(TokenType.KEYWORD, new AttributedStyle().foreground(AttributedStyle.WHITE).bold())
+                    .put(TokenType.KEYWORD, new AttributedStyle().foreground(AttributedStyle.BRIGHT + AttributedStyle.YELLOW))
                     .put(TokenType.SHELL, new AttributedStyle().foreground(AttributedStyle.WHITE).italic())
                     .put(TokenType.SYMBOL, new AttributedStyle().foreground(AttributedStyle.WHITE))
-                    .put(TokenType.STRING, new AttributedStyle().foreground(AttributedStyle.BLUE).bold())
-                    .put(TokenType.NUMBER, new AttributedStyle().foreground(AttributedStyle.YELLOW))
+                    .put(TokenType.STRING, new AttributedStyle().foreground(AttributedStyle.BLUE + AttributedStyle.BRIGHT))
+                    .put(TokenType.NUMBER, new AttributedStyle().foreground(AttributedStyle.MAGENTA))
                     .put(TokenType.UUID, new AttributedStyle().foreground(AttributedStyle.GREEN))
                     .put(TokenType.ID, new AttributedStyle().foreground(AttributedStyle.MAGENTA))
                     .put(TokenType.TYPE, new AttributedStyle().foreground(AttributedStyle.CYAN).bold())
@@ -31,13 +31,13 @@ public class CqlHighlighter implements Highlighter {
     @Override
     public AttributedString highlight(final LineReader reader, final String buffer) {
         final List<AttributedString> items = CqlTokenizer.parse(buffer, 0).stream()
-                .map(CqlHighlighter::tokenToAs)
+                .map(CqlHighlighter::highlightToken)
                 .collect(Collectors.toList());
 
         return AttributedString.join(new AttributedString(""), items);
     }
 
-    private static AttributedString tokenToAs(final Token token) {
+    public static AttributedString highlightToken(final Token token) {
         return new AttributedString(token.getToken(), HIGHLIGHTER.getOrDefault(token.getTokenType(), AttributedStyle.DEFAULT));
     }
 

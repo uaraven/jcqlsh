@@ -18,7 +18,7 @@ import static org.fusesource.jansi.Ansi.ansi;
 /**
  * Base class for ResultSetPrinters.
  * <p>
- * Incapsulates layout strategy to print rows in {@link ResultSet} on screen.
+ * Provides layout strategy to print rows in {@link ResultSet} on screen.
  */
 public abstract class ResultSetPrinter implements CqlResultPrinter {
 
@@ -37,7 +37,7 @@ public abstract class ResultSetPrinter implements CqlResultPrinter {
     void printHeader(final ResultSet resultSet, final List<Integer> columnWidths) {
 
         final List<ColumnAndWidth> columnsAndWidths = Streams.zip(
-                resultSet.getColumnDefinitions().asList().stream().map(ColumnDefinitions.Definition::getName),
+                resultSet.getColumnDefinitions().asList().stream(),
                 columnWidths.stream(), ColumnAndWidth::new)
                 .collect(Collectors.toList());
 
@@ -51,13 +51,18 @@ public abstract class ResultSetPrinter implements CqlResultPrinter {
             } else {
                 ln.a(" ");
             }
-            header(ln).a(StringUtils.center(cw.text, cw.width));
+
+            header(ln, cw.definition).a(StringUtils.center(cw.text, cw.width));
             ln2.a(StringUtils.center("", cw.width + (index == columnsAndWidths.size() - 1 ? 1 : 2), "-"));
         }
         ln.reset();
         ln2.reset();
         getContext().writer().println(ln);
         getContext().writer().println(ln2);
+    }
+
+    public Ansi header(Ansi ansi, ColumnDefinitions.Definition definition) {
+        return context.getResultColorizer().header(ansi, definition);
     }
 
     /**
@@ -76,7 +81,7 @@ public abstract class ResultSetPrinter implements CqlResultPrinter {
                 final List<Integer> columnWidths = calculateColumnWidths(resultSet.getColumnDefinitions(), results);
                 printHeader(resultSet, columnWidths);
                 results.forEach(row -> printRow(row, columnWidths));
-                if (this.context.isRunningInTerminal() && resultPages.hasNext()) {
+                if (ShellContext.isRunningInTerminal() && resultPages.hasNext()) {
                     this.context.writer().print("-- ENTER for MORE --");
                     this.context.writer().flush();
                     if (!this.context.waitForKeypress()) {
@@ -114,10 +119,18 @@ public abstract class ResultSetPrinter implements CqlResultPrinter {
     static final class ColumnAndWidth {
         final int width;
         final String text;
+        final ColumnDefinitions.Definition definition;
 
         ColumnAndWidth(final String text, final int width) {
-            this.width = width;
+            this.definition = null;
             this.text = text;
+            this.width = width;
+        }
+
+        ColumnAndWidth(final ColumnDefinitions.Definition def, final int width) {
+            this.width = width;
+            this.text = def.getName();
+            this.definition = def;
         }
     }
 

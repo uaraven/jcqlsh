@@ -41,9 +41,9 @@ public class ExpandCommand implements ShellCommand {
             } else {
                 context.writer().print(ansi().a("Expanded output is currently "));
                 if (context.getResultSetPrinter() == ResultSetPrinterType.EXPANDED) {
-                    context.writer().println(ansi().bold().a("enabled").reset().a("Use EXPAND OFF to enable"));
+                    context.writer().println(ansi().bold().a("enabled").reset().a(" Use EXPAND OFF to enable"));
                 } else {
-                    context.writer().println(ansi().bold().a("disabled").reset().a("Use EXPAND ON to enable"));
+                    context.writer().println(ansi().bold().a("disabled").reset().a(" Use EXPAND ON to enable"));
                 }
             }
         } catch (final ShellException ex) {

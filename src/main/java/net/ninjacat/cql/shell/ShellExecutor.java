@@ -22,7 +22,7 @@ public class ShellExecutor {
             .put("describe", DESCRIBE)
             .put("desc", DESCRIBE)
             .put("exit", ShellExecutor::exit)
-            // expand
+            .put("expand", new ExpandCommand())
             // login
             .put("paging", new PagingCommand())
             .put("serial", new SerialConsistencyCommand())

@@ -1,14 +1,19 @@
 package net.ninjacat.cql;
 
 import com.beust.jcommander.Parameter;
+import net.ninjacat.smooth.utils.Option;
+import net.ninjacat.smooth.utils.Try;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.util.Optional;
 
 /**
  * Command line parameters
  */
 public class Parameters {
+    private static final int DEFAULT_PORT = 9042;
+
     @Parameter(description = "Host to connect to in host[:port] format")
     private String host = "localhost";
 
@@ -38,6 +43,20 @@ public class Parameters {
 
     public String getHost() {
         return this.host;
+    }
+
+    public InetSocketAddress getHostAddress() {
+        String[] parts = this.host.split(":");
+        if (parts.length > 1) {
+            Option<Integer> port = Try.execute(() -> Integer.parseInt(parts[1])).get();
+            if (port.isPresent()) {
+                return new InetSocketAddress(parts[0], port.get());
+            } else {
+                throw new IllegalArgumentException("Address " + this.host + " is invalid");
+            }
+        } else {
+            return new InetSocketAddress(this.host, DEFAULT_PORT);
+        }
     }
 
     public boolean isUseSsl() {

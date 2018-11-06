@@ -1,17 +1,26 @@
 package net.ninjacat.cql;
 
-import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import net.ninjacat.cql.cassandra.ColumnId;
+import net.ninjacat.cql.cassandra.KeyType;
 import net.ninjacat.cql.printer.ResultSetColorizer;
 import net.ninjacat.cql.printer.ResultSetPrinterType;
 import net.ninjacat.cql.printer.ScreenSettings;
 import net.ninjacat.cql.shell.ShellException;
+import net.ninjacat.smooth.utils.Try;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 
+import javax.annotation.Nonnull;
 import java.io.PrintWriter;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Context of the shell. Contains terminal, KeyspaceTable session and gives access to {@link PrintWriter}
@@ -21,6 +30,7 @@ public class ShellContext {
     private final Session session;
     private final ScreenSettings screenSettings;
     private final ResultSetColorizer resultColorizer;
+    private final LoadingCache<ColumnId, KeyType> keyTypeCache;
     private boolean tracingEnabled;
 
     private ConsistencyLevel consistencyLevel;
@@ -32,11 +42,19 @@ public class ShellContext {
         this.consistencyLevel = ConsistencyLevel.ONE;
         this.serialConsistencyLevel = ConsistencyLevel.SERIAL;
         this.tracingEnabled = false;
-        this.resultColorizer = new ResultSetColorizer();
+        this.resultColorizer = new ResultSetColorizer(this);
         this.screenSettings = new ScreenSettings(ResultSetPrinterType.COMPACT, terminal.getType().startsWith("dumb") ? 40 : terminal.getHeight());
+        this.keyTypeCache = CacheBuilder.newBuilder()
+                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .build(new CacheLoader<ColumnId, KeyType>() {
+                    @Override
+                    public KeyType load(@Nonnull final ColumnId key) {
+                        return loadColumnKeyType(key);
+                    }
+                });
     }
 
-    public boolean isRunningInTerminal() {
+    public static boolean isRunningInTerminal() {
         return System.console() != null;
     }
 
@@ -113,5 +131,24 @@ public class ShellContext {
         } catch (final Exception e) {
             throw new ShellException("", e);
         }
+    }
+
+    public KeyType getKeyTypeOfColumn(final ColumnDefinitions.Definition columnDef) {
+        final ColumnId columnId = ColumnId.fromColumnDef(columnDef);
+        return Try.execute(() -> this.keyTypeCache.get(columnId)).get().or(KeyType.NoKey);
+    }
+
+    private KeyType loadColumnKeyType(final ColumnId columnId) {
+        final TableMetadata table = this.session.getCluster().getMetadata().getKeyspace(columnId.getKeyspace()).getTable(columnId.getTable());
+        final Set<String> partitionKey = table.getPartitionKey().stream().map(ColumnMetadata::getName).collect(Collectors.toSet());
+        final Set<String> clusteringColumns = table.getClusteringColumns().stream().map(ColumnMetadata::getName).collect(Collectors.toSet());
+
+        if (partitionKey.contains(columnId.getColumn())) {
+            return KeyType.PartitionKey;
+        }
+        if (clusteringColumns.contains(columnId.getColumn())) {
+            return KeyType.ClusteringKey;
+        }
+        return KeyType.NoKey;
     }
 }

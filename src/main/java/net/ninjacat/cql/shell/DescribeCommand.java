@@ -3,9 +3,11 @@ package net.ninjacat.cql.shell;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.TableMetadata;
-import net.ninjacat.cql.AnsiHighlighter;
+import com.google.common.collect.ImmutableMap;
 import net.ninjacat.cql.ShellContext;
+import net.ninjacat.cql.parser.CqlTokenizer;
 import net.ninjacat.cql.parser.Token;
+import net.ninjacat.cql.parser.TokenType;
 import net.ninjacat.cql.parser.Tokens;
 import net.ninjacat.cql.utils.KeyspaceTable;
 import org.apache.commons.lang3.StringUtils;
@@ -13,6 +15,8 @@ import org.fusesource.jansi.Ansi;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import static org.fusesource.jansi.Ansi.ansi;
 
@@ -112,7 +116,7 @@ public class DescribeCommand implements ShellCommand {
         if (keyspace == null) {
             throw new ShellException("Unknown keyspace: " + keyspaceName);
         }
-        context.writer().println(AnsiHighlighter.highlight(keyspace.exportAsString()));
+        context.writer().println(DescribeHighlighter.highlight(keyspace.exportAsString()));
         context.writer().println();
     }
 
@@ -123,7 +127,7 @@ public class DescribeCommand implements ShellCommand {
         }
         final KeyspaceMetadata keyspace = context.getSession().getCluster().getMetadata().getKeyspace(keyspaceName);
         final TableMetadata table = keyspace.getTable(keyspTable.getTable());
-        context.writer().println(AnsiHighlighter.highlight(table.exportAsString()));
+        context.writer().println(DescribeHighlighter.highlight(table.exportAsString()));
         context.writer().println();
     }
 
@@ -173,5 +177,45 @@ public class DescribeCommand implements ShellCommand {
                     : ansi().a(keyspaceMetadata.getName());
             context.writer().println(ksps);
         });
+    }
+
+    /**
+     * Highlights CQL queries for ansi output
+     */
+    public static final class DescribeHighlighter {
+
+        private static final Map<TokenType, Consumer<Ansi>> HIGHLIGHTER =
+                ImmutableMap.<TokenType, Consumer<Ansi>>builder()
+                        .put(TokenType.KEYWORD, Ansi::fgBrightYellow)
+                        .put(TokenType.SHELL, ansi -> ansi.a(Ansi.Attribute.ITALIC))
+                        .put(TokenType.SYMBOL, Ansi::fgDefault)
+                        .put(TokenType.STRING, Ansi::fgBrightBlue)
+                        .put(TokenType.NUMBER, Ansi::fgMagenta)
+                        .put(TokenType.UUID, Ansi::fgGreen)
+                        .put(TokenType.ID, Ansi::fgMagenta)
+                        .put(TokenType.TYPE, ansi -> ansi.fgCyan().a(Ansi.Attribute.INTENSITY_BOLD))
+                        .build();
+
+        private DescribeHighlighter() {
+        }
+
+
+        public static Ansi highlight(final String cql) {
+            final Ansi ansi = ansi();
+
+            CqlTokenizer.parse(cql, 0).forEach(token -> {
+                tokenToAs(token).accept(ansi);
+                ansi.render(token.getToken());
+                ansi.reset();
+            });
+
+            return ansi;
+        }
+
+        private static Consumer<Ansi> tokenToAs(final Token token) {
+            return HIGHLIGHTER.getOrDefault(token.getTokenType(), ansi -> {
+            });
+        }
+
     }
 }

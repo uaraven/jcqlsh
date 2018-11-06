@@ -36,7 +36,7 @@ public class ExpandedResultSetPrinter implements CqlResultPrinter {
                 this.context.writer().println();
                 final List<Row> results = resultPages.next();
                 results.forEach(this::printRow);
-                if (this.context.isRunningInTerminal() && resultPages.hasNext()) {
+                if (ShellContext.isRunningInTerminal() && resultPages.hasNext()) {
                     this.context.writer().print("-- ENTER for MORE --");
                     this.context.writer().flush();
                     if (!this.context.waitForKeypress()) {
@@ -60,6 +60,7 @@ public class ExpandedResultSetPrinter implements CqlResultPrinter {
             color.table(ln).a(" | ");
             final String text = escapeText(safeGetValue(row, index));
             color.value(ln, column).a(text);
+            this.context.writer().println(ln);
             index += 1;
         }
     }
