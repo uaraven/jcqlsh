@@ -13,8 +13,14 @@ public class UtilsTest {
     private static final ImmutableList<Integer> SOURCE = ImmutableList.of(0, 1, 2, 3, 4);
 
     @Test
-    public void shouldSliceList() {
+    public void shouldSliceListInclusive() {
         final List<Integer> slice = Utils.slice(SOURCE).from(1).to(3);
+        assertThat(slice, Matchers.contains(1, 2, 3, 4));
+    }
+
+    @Test
+    public void shouldSliceListExclusive() {
+        final List<Integer> slice = Utils.slice(SOURCE).from(1).till(3);
         assertThat(slice, Matchers.contains(1, 2, 3));
     }
 }

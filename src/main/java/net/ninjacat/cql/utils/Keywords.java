@@ -16,7 +16,7 @@ public final class Keywords {
     public static Set<String> readResource(final String resourceName) {
         try {
             return ImmutableSet.copyOf(Resources.readLines(CqlTokenizer.class.getResource(resourceName), Charsets.UTF_8));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             return ImmutableSet.of();
         }
     }
