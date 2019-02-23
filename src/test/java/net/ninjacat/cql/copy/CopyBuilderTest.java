@@ -15,19 +15,36 @@ public class CopyBuilderTest {
     @Test
     public void shouldParseSimpleCopyTo() {
         final String text = "COPY table(col1, col2) TO '/dev/null'";
-        final CqlCopyData copyData = parse(text);
+        final CqlCopyContext copyData = parse(text);
 
         assertThat(copyData.getTableName(), is("table"));
         assertThat(copyData.getColumnNames(), contains("col1", "col2"));
         assertThat(copyData.getDirection(), is(CopyDirection.TO));
         assertThat(copyData.isUseConsoleForIo(), is(false));
         assertThat(copyData.getFileName(), contains("/dev/null"));
+        assertThat(copyData.getOptions().entrySet(), hasSize(0));
+    }
+
+    @Test
+    public void shouldParseKeyspaceTableName() {
+        final String text = "COPY keyspace.table(col1, col2) TO '/dev/null'";
+        final CqlCopyContext copyData = parse(text);
+
+        assertThat(copyData.getTableName(), is("keyspace.table"));
+    }
+
+    @Test
+    public void shouldParseTableNoColumns() {
+        final String text = "COPY keyspace.table TO '/dev/null'";
+        final CqlCopyContext copyData = parse(text);
+
+        assertThat(copyData.getColumnNames(), hasSize(0));
     }
 
     @Test
     public void shouldParseSimpleCopyToStdio() {
         final String text = "COPY table(col1, col2) TO stdout";
-        final CqlCopyData copyData = parse(text);
+        final CqlCopyContext copyData = parse(text);
 
         assertThat(copyData.getTableName(), is("table"));
         assertThat(copyData.getColumnNames(), contains("col1", "col2"));
@@ -39,7 +56,7 @@ public class CopyBuilderTest {
     @Test
     public void shouldParseSimpleCopyFrom() {
         final String text = "COPY table(col1, col2) FROM '/dev/null'";
-        final CqlCopyData copyData = parse(text);
+        final CqlCopyContext copyData = parse(text);
 
         assertThat(copyData.getTableName(), is("table"));
         assertThat(copyData.getColumnNames(), contains("col1", "col2"));
@@ -51,7 +68,7 @@ public class CopyBuilderTest {
     @Test
     public void shouldParseSimpleCopyFromStdin() {
         final String text = "COPY table(col1, col2) FROM stdin";
-        final CqlCopyData copyData = parse(text);
+        final CqlCopyContext copyData = parse(text);
 
         assertThat(copyData.getTableName(), is("table"));
         assertThat(copyData.getColumnNames(), contains("col1", "col2"));
@@ -60,7 +77,15 @@ public class CopyBuilderTest {
         assertThat(copyData.getFileName(), hasSize(0));
     }
 
-    private static CqlCopyData parse(final String text) {
+    @Test
+    public void shouldParseOptions() {
+        final String text = "COPY table(col1, col2) FROM stdin WITH DELIMITER=',' AND HEADER=true;";
+        final CqlCopyContext copyData = parse(text);
+
+        assertThat(copyData.getOptions().values(), containsInAnyOrder(",", "true"));
+    }
+
+    private static CqlCopyContext parse(final String text) {
         final CqlCopyLexer cqlCopyLexer = new CqlCopyLexer(CharStreams.fromString(text));
         final CqlCopyParser cqlCopyParser = new CqlCopyParser(new CommonTokenStream(cqlCopyLexer));
         final ParseTreeWalker walker = new ParseTreeWalker();

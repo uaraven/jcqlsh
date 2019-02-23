@@ -13,7 +13,7 @@ copy_stmt:
 
 console_io: K_STDIN | K_STDOUT;
 
-table_def:  table_name '(' column_list ')';
+table_def:  table_name ('(' column_list ')')?;
 
 column_list: column_name(',' column_name)*;
 
