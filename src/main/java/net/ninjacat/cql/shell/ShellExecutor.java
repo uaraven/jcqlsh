@@ -18,6 +18,7 @@ public class ShellExecutor {
             // capture
             .put("clear", new ClearCommand())
             .put("consistency", new ConsistencyCommand())
+            .put("copy", new CopyCommand())
             // copy
             .put("describe", DESCRIBE)
             .put("desc", DESCRIBE)

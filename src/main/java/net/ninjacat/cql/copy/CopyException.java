@@ -2,8 +2,12 @@ package net.ninjacat.cql.copy;
 
 import net.ninjacat.cql.shell.ShellException;
 
-public class CopyException extends ShellException {
-    public CopyException(final String message) {
+class CopyException extends ShellException {
+    CopyException(final String message) {
         super(message);
+    }
+
+    CopyException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }

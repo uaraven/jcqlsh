@@ -14,11 +14,15 @@ import java.util.List;
 
 public class CopyCommand implements ShellCommand {
     @Override
-    public void execute(ShellContext context, List<Token> tokens) {
+    public void execute(final ShellContext context, final List<Token> tokens) {
         final String copyCommand = Joiner.on(" ").join(tokens);
         final CqlCopyContext copyContext = parseCopyCommand(copyCommand);
 
-        BaseCopy copyExecutor = copyContext.getDirection() == CopyDirection.FROM ? new CopyFrom(copyContext) : new CopyTo(copyContext);
+        final BaseCopy copyExecutor = copyContext.getDirection() == CopyDirection.FROM ?
+                new CopyFrom(context, copyContext) :
+                new CopyTo(context, copyContext);
+
+        copyExecutor.copy();
     }
 
     private static CqlCopyContext parseCopyCommand(final String text) {
